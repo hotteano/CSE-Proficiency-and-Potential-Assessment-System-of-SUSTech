@@ -34,7 +34,7 @@ public class LoginView extends VBox {
     
     private void initComponents() {
         // 标题
-        Label titleLabel = new Label("面试题目抽取系统");
+        Label titleLabel = new Label("计算机科学与工程能力与潜力测评系统");
         titleLabel.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 28));
         titleLabel.setTextFill(Color.web("#4682b4"));
         
