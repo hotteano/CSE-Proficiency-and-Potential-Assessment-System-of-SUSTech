@@ -79,15 +79,21 @@ public class EvaluationService {
      * 保存评分（供视图层调用）
      * 创建并提交评委评分
      * 
-     * @param recordId 面试记录ID
+     * @param record 面试记录
      * @param scores 各维度分数（Double类型，会被转换为Integer）
      * @param comments 评语
      * @param reasoning 评分理由
      * @return 是否保存成功
      */
-    public boolean saveScore(int recordId, Map<EvaluationDimension, Double> scores, String comments, String reasoning) {
+    public boolean saveScore(InterviewRecord record, Map<EvaluationDimension, Double> scores, String comments, String reasoning) {
+        if (record == null) {
+            System.err.println("[EvaluationService] 面试记录为空，无法保存评分");
+            return false;
+        }
+        
         EvaluationScore score = new EvaluationScore();
-        score.setInterviewRecordId(recordId);
+        score.setInterviewRecordId(record.getId());
+        score.setCandidateUsername(record.getCandidateUsername());
         score.setComments(comments);
         score.setReasoning(reasoning);
         

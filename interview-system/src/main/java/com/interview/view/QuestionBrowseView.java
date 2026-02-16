@@ -1,7 +1,7 @@
 package com.interview.view;
 
 import com.interview.model.Question;
-import com.interview.model.Question.Difficulty;
+import com.interview.model.Question.QuestionLevel;
 import com.interview.model.Question.QuestionType;
 import com.interview.service.QuestionService;
 import javafx.beans.property.SimpleStringProperty;
@@ -79,9 +79,12 @@ public class QuestionBrowseView extends BorderPane {
         // 难度
         difficultyComboBox = new ComboBox<>();
         difficultyComboBox.getItems().add("全部");
-        for (Difficulty diff : Difficulty.values()) {
-            difficultyComboBox.getItems().add(diff.getDisplayName());
-        }
+        // 添加基础等级
+        difficultyComboBox.getItems().add(QuestionLevel.BASIC.getDisplayName());
+        difficultyComboBox.getItems().add(QuestionLevel.INTERMEDIATE.getDisplayName());
+        difficultyComboBox.getItems().add(QuestionLevel.ADVANCED.getDisplayName());
+        // 添加专精三等
+        difficultyComboBox.getItems().add(QuestionLevel.SPECIALIZATION_THREE.getDisplayName());
         difficultyComboBox.setValue("全部");
         difficultyComboBox.setPrefWidth(100);
         
@@ -139,7 +142,7 @@ public class QuestionBrowseView extends BorderPane {
         
         TableColumn<Question, String> diffCol = new TableColumn<>("难度");
         diffCol.setCellValueFactory(cell -> 
-            new SimpleStringProperty(cell.getValue().getDifficultyDisplayName()));
+            new SimpleStringProperty(cell.getValue().getLevelDisplayName()));
         diffCol.setPrefWidth(80);
         
         TableColumn<Question, String> catCol = new TableColumn<>("分类");
@@ -209,12 +212,12 @@ public class QuestionBrowseView extends BorderPane {
         String keyword = keywordField.getText().trim();
         QuestionType type = typeComboBox.getSelectionModel().getSelectedIndex() > 0 ? 
             QuestionType.values()[typeComboBox.getSelectionModel().getSelectedIndex() - 1] : null;
-        Difficulty difficulty = difficultyComboBox.getSelectionModel().getSelectedIndex() > 0 ? 
-            Difficulty.values()[difficultyComboBox.getSelectionModel().getSelectedIndex() - 1] : null;
+        QuestionLevel level = difficultyComboBox.getSelectionModel().getSelectedIndex() > 0 ? 
+            QuestionLevel.values()[difficultyComboBox.getSelectionModel().getSelectedIndex() - 1] : null;
         String category = categoryComboBox.getSelectionModel().getSelectedIndex() > 0 ? 
             categoryComboBox.getValue() : null;
         
-        List<Question> questions = questionService.searchQuestions(keyword, type, difficulty, category);
+        List<Question> questions = questionService.searchQuestions(keyword, type, level, category);
         updateTable(questions);
     }
     

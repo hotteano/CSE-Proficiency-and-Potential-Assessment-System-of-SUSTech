@@ -59,6 +59,32 @@ public class LLMManager {
     }
     
     /**
+     * 构建完整的API URL
+     * 处理各种端点格式
+     */
+    private String buildApiUrl(String endpoint) {
+        if (endpoint == null || endpoint.isEmpty()) {
+            return "https://api.deepseek.com/v1/chat/completions";
+        }
+        
+        // 移除末尾的斜杠
+        endpoint = endpoint.replaceAll("/+$", "");
+        
+        // 如果已经包含完整路径，直接返回
+        if (endpoint.contains("/chat/completions")) {
+            return endpoint;
+        }
+        
+        // 如果包含 /v1，追加 /chat/completions
+        if (endpoint.endsWith("/v1")) {
+            return endpoint + "/chat/completions";
+        }
+        
+        // 否则追加 /v1/chat/completions
+        return endpoint + "/v1/chat/completions";
+    }
+    
+    /**
      * 发送LLM API请求 - 真实实现
      * @param prompt 提示词
      * @return LLM响应
@@ -75,11 +101,14 @@ public class LLMManager {
         try {
             // 构建请求体
             String requestBody = buildRequestBody(prompt);
-            System.out.println("[LLMManager] 请求体: " + requestBody.substring(0, Math.min(500, requestBody.length())) + "...");
+            System.out.println("[LLMManager] 请求体大小: " + requestBody.length() + " 字符");
             
             // 构建HTTP请求
+            String apiUrl = buildApiUrl(currentConfig.getApiEndpoint());
+            System.out.println("[LLMManager] 完整API URL: " + apiUrl);
+            
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                .uri(URI.create(currentConfig.getApiEndpoint()))
+                .uri(URI.create(apiUrl))
                 .header("Content-Type", "application/json")
                 .timeout(Duration.ofSeconds(120));
             
@@ -97,9 +126,14 @@ public class LLMManager {
             // 处理响应
             if (response.statusCode() == 200) {
                 String responseBody = response.body();
-                System.out.println("[LLMManager] API调用成功");
-                System.out.println("[LLMManager] 响应: " + responseBody.substring(0, Math.min(500, responseBody.length())) + "...");
-                return parseResponse(responseBody);
+                System.out.println("[LLMManager] API调用成功，响应大小: " + responseBody.length() + " 字符");
+                String result = parseResponse(responseBody);
+                if (result != null) {
+                    return result;
+                } else {
+                    System.err.println("[LLMManager] 解析响应失败，原始响应: " + responseBody.substring(0, Math.min(500, responseBody.length())));
+                    return null;
+                }
             } else {
                 System.err.println("[LLMManager] API调用失败，状态码: " + response.statusCode());
                 System.err.println("[LLMManager] 响应: " + response.body());
@@ -128,7 +162,6 @@ public class LLMManager {
             case AZURE_OPENAI:
             case ANTHROPIC:
                 return "Bearer " + apiKey;
-            case LOCAL:
             default:
                 return apiKey;
         }
@@ -146,16 +179,15 @@ public class LLMManager {
             case DEEPSEEK_THINKING:
             case OPENAI:
             case OPENAI_GPT4_TURBO:
-            case AZURE_OPENAI:
-            case ANTHROPIC:
-            case LOCAL:
+                // OpenAI兼容格式
+                return buildOpenAICompatibleRequest(prompt);
             default:
                 return buildOpenAICompatibleRequest(prompt);
         }
     }
     
     /**
-     * 构建OpenAI兼容格式的请求体 - 手动JSON构建
+     * 构建OpenAI兼容格式的请求体
      */
     private String buildOpenAICompatibleRequest(String prompt) {
         StringBuilder sb = new StringBuilder();
@@ -220,7 +252,8 @@ public class LLMManager {
      */
     private String parseResponse(String responseBody) {
         try {
-            // 手动解析JSON响应
+            System.out.println("[LLMManager] 开始解析响应...");
+            
             // 检查是否有错误
             if (responseBody.contains("\"error\"")) {
                 String errorMsg = extractJsonValue(responseBody, "message");
@@ -228,37 +261,51 @@ public class LLMManager {
                 return null;
             }
             
-            // 解析标准OpenAI格式 - 提取choices[0].message.content
+            // 解析标准OpenAI格式 - 提取choices[0].message
             if (responseBody.contains("\"choices\"")) {
-                // 找到choices数组
-                int choicesStart = responseBody.indexOf("\"choices\"");
-                int arrayStart = responseBody.indexOf("[", choicesStart);
-                int arrayEnd = responseBody.indexOf("]", arrayStart);
+                System.out.println("[LLMManager] 检测到 choices 字段");
                 
-                if (arrayStart >= 0 && arrayEnd > arrayStart) {
-                    String choicesContent = responseBody.substring(arrayStart + 1, arrayEnd);
-                    // 找到第一个choice对象
-                    int firstBrace = choicesContent.indexOf("{");
-                    int lastBrace = choicesContent.indexOf("}");
+                // 提取第一个 choice
+                String firstChoice = extractFirstChoice(responseBody);
+                if (firstChoice == null) {
+                    System.err.println("[LLMManager] 无法提取 choice");
+                    return null;
+                }
+                
+                System.out.println("[LLMManager] 提取到 choice: " + firstChoice.substring(0, Math.min(200, firstChoice.length())) + "...");
+                
+                // 检查message或delta
+                String content = null;
+                
+                if (firstChoice.contains("\"message\"")) {
+                    String messageObj = extractJsonObject(firstChoice, "message");
+                    System.out.println("[LLMManager] 提取到 message 对象");
                     
-                    if (firstBrace >= 0 && lastBrace > firstBrace) {
-                        String firstChoice = choicesContent.substring(firstBrace, lastBrace + 1);
-                        
-                        // 检查message或delta
-                        String content = null;
-                        if (firstChoice.contains("\"message\"")) {
-                            String messageObj = extractJsonObject(firstChoice, "message");
-                            content = extractJsonValue(messageObj, "content");
-                        } else if (firstChoice.contains("\"delta\"")) {
-                            String deltaObj = extractJsonObject(firstChoice, "delta");
-                            content = extractJsonValue(deltaObj, "content");
-                        }
-                        
-                        if (content != null) {
-                            return content;
+                    // 首先尝试提取 content
+                    content = extractJsonValue(messageObj, "content");
+                    
+                    // DeepSeek-R1/Reasoner 模型可能返回 reasoning_content 而不是 content
+                    if (content == null || content.trim().isEmpty()) {
+                        System.out.println("[LLMManager] content 为空，尝试提取 reasoning_content");
+                        String reasoningContent = extractJsonValue(messageObj, "reasoning_content");
+                        if (reasoningContent != null && !reasoningContent.trim().isEmpty()) {
+                            System.out.println("[LLMManager] 使用 reasoning_content (DeepSeek Reasoner)");
+                            content = reasoningContent;
                         }
                     }
+                } else if (firstChoice.contains("\"delta\"")) {
+                    String deltaObj = extractJsonObject(firstChoice, "delta");
+                    content = extractJsonValue(deltaObj, "content");
                 }
+                
+                if (content != null && !content.trim().isEmpty()) {
+                    System.out.println("[LLMManager] 成功提取内容，长度: " + content.length());
+                    return content;
+                } else {
+                    System.err.println("[LLMManager] 提取到的内容为空");
+                }
+            } else {
+                System.err.println("[LLMManager] 响应中未找到 choices 字段");
             }
             
             // 如果解析失败，返回原始响应
@@ -267,8 +314,76 @@ public class LLMManager {
             
         } catch (Exception e) {
             System.err.println("[LLMManager] 解析响应异常: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
+    }
+    
+    /**
+     * 提取第一个 choice 对象
+     */
+    private String extractFirstChoice(String json) {
+        int choicesIndex = json.indexOf("\"choices\"");
+        if (choicesIndex < 0) return null;
+        
+        int bracketStart = json.indexOf("[", choicesIndex);
+        if (bracketStart < 0) return null;
+        
+        // 找到匹配的 ]
+        int bracketCount = 0;
+        int bracketEnd = -1;
+        boolean inString = false;
+        
+        for (int i = bracketStart; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (c == '"' && (i == 0 || json.charAt(i - 1) != '\\')) {
+                inString = !inString;
+            } else if (!inString) {
+                if (c == '[') {
+                    bracketCount++;
+                } else if (c == ']') {
+                    bracketCount--;
+                    if (bracketCount == 0) {
+                        bracketEnd = i;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (bracketEnd < 0) return null;
+        
+        String choicesContent = json.substring(bracketStart + 1, bracketEnd);
+        
+        // 提取第一个 { } 对象
+        int firstBrace = choicesContent.indexOf("{");
+        if (firstBrace < 0) return null;
+        
+        // 找到匹配的 }
+        int braceCount = 0;
+        int braceEnd = -1;
+        inString = false;
+        
+        for (int i = firstBrace; i < choicesContent.length(); i++) {
+            char c = choicesContent.charAt(i);
+            if (c == '"' && (i == 0 || choicesContent.charAt(i - 1) != '\\')) {
+                inString = !inString;
+            } else if (!inString) {
+                if (c == '{') {
+                    braceCount++;
+                } else if (c == '}') {
+                    braceCount--;
+                    if (braceCount == 0) {
+                        braceEnd = i;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (braceEnd < 0) return null;
+        
+        return choicesContent.substring(firstBrace, braceEnd + 1);
     }
     
     /**
@@ -292,41 +407,52 @@ public class LLMManager {
             valueStart++;
         }
         
+        if (valueStart >= json.length()) {
+            return null;
+        }
+        
         char firstChar = json.charAt(valueStart);
         if (firstChar == '"') {
             // 字符串值
             valueStart++;
-            int valueEnd = valueStart;
             StringBuilder sb = new StringBuilder();
-            while (valueEnd < json.length()) {
-                char c = json.charAt(valueEnd);
-                if (c == '\\' && valueEnd + 1 < json.length()) {
+            for (int i = valueStart; i < json.length(); i++) {
+                char c = json.charAt(i);
+                if (c == '\\' && i + 1 < json.length()) {
                     // 处理转义字符
-                    char next = json.charAt(valueEnd + 1);
+                    char next = json.charAt(i + 1);
                     switch (next) {
-                        case '"': sb.append('"'); break;
-                        case '\\': sb.append('\\'); break;
-                        case '/': sb.append('/'); break;
-                        case 'b': sb.append('\b'); break;
-                        case 'f': sb.append('\f'); break;
-                        case 'n': sb.append('\n'); break;
-                        case 'r': sb.append('\r'); break;
-                        case 't': sb.append('\t'); break;
+                        case '"': sb.append('"'); i++; break;
+                        case '\\': sb.append('\\'); i++; break;
+                        case '/': sb.append('/'); i++; break;
+                        case 'b': sb.append('\b'); i++; break;
+                        case 'f': sb.append('\f'); i++; break;
+                        case 'n': sb.append('\n'); i++; break;
+                        case 'r': sb.append('\r'); i++; break;
+                        case 't': sb.append('\t'); i++; break;
                         case 'u': 
-                            if (valueEnd + 5 < json.length()) {
-                                String hex = json.substring(valueEnd + 2, valueEnd + 6);
-                                sb.append((char) Integer.parseInt(hex, 16));
-                                valueEnd += 4;
+                            if (i + 5 < json.length()) {
+                                String hex = json.substring(i + 2, i + 6);
+                                try {
+                                    sb.append((char) Integer.parseInt(hex, 16));
+                                    i += 5;
+                                } catch (NumberFormatException e) {
+                                    sb.append('\\').append(next);
+                                    i++;
+                                }
+                            } else {
+                                sb.append('\\').append(next);
+                                i++;
                             }
                             break;
-                        default: sb.append(next);
+                        default: 
+                            sb.append(next);
+                            i++;
                     }
-                    valueEnd += 2;
                 } else if (c == '"') {
-                    break;
+                    return sb.toString();
                 } else {
                     sb.append(c);
-                    valueEnd++;
                 }
             }
             return sb.toString();
@@ -358,12 +484,16 @@ public class LLMManager {
                    json.charAt(valueEnd) != '}') {
                 valueEnd++;
             }
-            return json.substring(valueStart, valueEnd).trim();
+            String value = json.substring(valueStart, valueEnd).trim();
+            if (value.equals("null")) {
+                return null;
+            }
+            return value;
         }
     }
     
     /**
-     * 从JSON字符串中提取嵌套对象
+     * 从JSON字符串中提取对象
      */
     private String extractJsonObject(String json, String key) {
         String searchKey = "\"" + key + "\"";
@@ -377,11 +507,17 @@ public class LLMManager {
             return null;
         }
         
-        int objStart = json.indexOf("{", colonIndex);
-        if (objStart < 0) {
+        int objStart = colonIndex + 1;
+        // 跳过空白字符
+        while (objStart < json.length() && Character.isWhitespace(json.charAt(objStart))) {
+            objStart++;
+        }
+        
+        if (objStart >= json.length() || json.charAt(objStart) != '{') {
             return null;
         }
         
+        // 找到匹配的 }
         int braceCount = 0;
         boolean inString = false;
         for (int i = objStart; i < json.length(); i++) {
@@ -399,6 +535,7 @@ public class LLMManager {
                 }
             }
         }
+        
         return null;
     }
     
@@ -482,10 +619,10 @@ public class LLMManager {
         prompt.append("\n\n请按照以下17个维度进行评分（0-100分），并给出评语：\n\n");
         
         for (EvaluationDimension dim : EvaluationDimension.values()) {
-            prompt.append(String.format("%s (%s): ", dim.getDisplayName(), dim.getCategory().getDisplayName()));
+            prompt.append(String.format("- %s (%s)\n", dim.getDisplayName(), dim.getCategory().getDisplayName()));
         }
         
-        prompt.append("\n\n请以JSON格式返回结果，格式如下：\n");
+        prompt.append("\n请以JSON格式返回结果，格式如下：\n");
         prompt.append("{\n");
         prompt.append("  \"scores\": {\n");
         for (EvaluationDimension dim : EvaluationDimension.values()) {
@@ -497,7 +634,10 @@ public class LLMManager {
         prompt.append("  \"weaknesses\": [\"不足1\", \"不足2\"],\n");
         prompt.append("  \"suggestions\": [\"建议1\", \"建议2\"]\n");
         prompt.append("}\n\n");
-        prompt.append("只返回JSON，不要其他内容。");
+        prompt.append("注意：\n");
+        prompt.append("1. 只返回JSON格式的结果，不要包含其他说明文字\n");
+        prompt.append("2. 分数必须是0-100之间的整数\n");
+        prompt.append("3. 评语应该具体、有针对性\n");
         
         return prompt.toString();
     }
@@ -507,12 +647,17 @@ public class LLMManager {
      */
     private InterviewAnalysisResult parseAnalysisResult(String response) {
         try {
+            System.out.println("[LLMManager] 开始解析分析结果，响应长度: " + response.length());
+            
             // 提取JSON部分
             String jsonStr = extractJson(response);
             if (jsonStr == null) {
                 System.err.println("[LLMManager] 无法从响应中提取JSON");
-                return null;
+                // 尝试直接解析整个响应
+                jsonStr = response.trim();
             }
+            
+            System.out.println("[LLMManager] 提取到的JSON: " + jsonStr.substring(0, Math.min(500, jsonStr.length())) + "...");
             
             InterviewAnalysisResult result = new InterviewAnalysisResult();
             
@@ -520,18 +665,22 @@ public class LLMManager {
             if (jsonStr.contains("\"scores\"")) {
                 String scoresObj = extractJsonObject(jsonStr, "scores");
                 if (scoresObj != null) {
+                    System.out.println("[LLMManager] 解析到 scores 对象");
                     for (EvaluationDimension dim : EvaluationDimension.values()) {
-                        String dimName = dim.name();
-                        if (scoresObj.contains("\"" + dimName + "\"")) {
-                            String dimObj = extractJsonObject(scoresObj, dimName);
+                        String dimKey = "\"" + dim.name() + "\"";
+                        if (scoresObj.contains(dimKey)) {
+                            String dimObj = extractJsonObject(scoresObj, dim.name());
                             if (dimObj != null) {
                                 String scoreStr = extractJsonValue(dimObj, "score");
                                 String comment = extractJsonValue(dimObj, "comment");
+                                
                                 if (scoreStr != null) {
                                     try {
-                                        result.setDimensionScore(dim, Double.parseDouble(scoreStr));
+                                        double score = Double.parseDouble(scoreStr);
+                                        result.setDimensionScore(dim, score);
+                                        System.out.println("[LLMManager] 设置维度分数: " + dim.getDisplayName() + " = " + score);
                                     } catch (NumberFormatException e) {
-                                        // 忽略解析错误
+                                        System.err.println("[LLMManager] 解析分数失败: " + scoreStr);
                                     }
                                 }
                                 if (comment != null) {
@@ -545,30 +694,22 @@ public class LLMManager {
             
             // 解析其他字段
             if (jsonStr.contains("\"overall_comment\"")) {
-                String overallComment = extractJsonValue(jsonStr, "overall_comment");
-                if (overallComment != null) {
-                    result.setOverallComment(overallComment);
-                }
-            }
-            if (jsonStr.contains("\"strengths\"")) {
-                List<String> strengths = extractJsonArray(jsonStr, "strengths");
-                if (strengths != null) {
-                    result.setStrengths(strengths);
-                }
-            }
-            if (jsonStr.contains("\"weaknesses\"")) {
-                List<String> weaknesses = extractJsonArray(jsonStr, "weaknesses");
-                if (weaknesses != null) {
-                    result.setWeaknesses(weaknesses);
-                }
-            }
-            if (jsonStr.contains("\"suggestions\"")) {
-                List<String> suggestions = extractJsonArray(jsonStr, "suggestions");
-                if (suggestions != null) {
-                    result.setSuggestions(suggestions);
-                }
+                result.setOverallComment(extractJsonValue(jsonStr, "overall_comment"));
             }
             
+            if (jsonStr.contains("\"strengths\"")) {
+                result.setStrengths(extractJsonArray(jsonStr, "strengths"));
+            }
+            
+            if (jsonStr.contains("\"weaknesses\"")) {
+                result.setWeaknesses(extractJsonArray(jsonStr, "weaknesses"));
+            }
+            
+            if (jsonStr.contains("\"suggestions\"")) {
+                result.setSuggestions(extractJsonArray(jsonStr, "suggestions"));
+            }
+            
+            System.out.println("[LLMManager] 解析完成，总分: " + result.calculateTotalScore());
             return result;
             
         } catch (Exception e) {
@@ -576,72 +717,6 @@ public class LLMManager {
             e.printStackTrace();
             return null;
         }
-    }
-    
-    /**
-     * 从JSON字符串中提取字符串数组
-     */
-    private List<String> extractJsonArray(String json, String key) {
-        String searchKey = "\"" + key + "\"";
-        int keyIndex = json.indexOf(searchKey);
-        if (keyIndex < 0) {
-            return null;
-        }
-        
-        int colonIndex = json.indexOf(":", keyIndex);
-        if (colonIndex < 0) {
-            return null;
-        }
-        
-        int arrayStart = json.indexOf("[", colonIndex);
-        if (arrayStart < 0) {
-            return null;
-        }
-        
-        int arrayEnd = json.indexOf("]", arrayStart);
-        if (arrayEnd < 0) {
-            return null;
-        }
-        
-        String arrayContent = json.substring(arrayStart + 1, arrayEnd);
-        List<String> result = new ArrayList<>();
-        
-        // 解析数组元素
-        StringBuilder current = new StringBuilder();
-        boolean inString = false;
-        boolean escaped = false;
-        
-        for (char c : arrayContent.toCharArray()) {
-            if (escaped) {
-                switch (c) {
-                    case '"': current.append('"'); break;
-                    case '\\': current.append('\\'); break;
-                    case '/': current.append('/'); break;
-                    case 'b': current.append('\b'); break;
-                    case 'f': current.append('\f'); break;
-                    case 'n': current.append('\n'); break;
-                    case 'r': current.append('\r'); break;
-                    case 't': current.append('\t'); break;
-                    default: current.append(c);
-                }
-                escaped = false;
-            } else if (c == '\\') {
-                escaped = true;
-            } else if (c == '"') {
-                if (inString) {
-                    result.add(current.toString());
-                    current = new StringBuilder();
-                    inString = false;
-                } else {
-                    inString = true;
-                }
-            } else if (inString) {
-                current.append(c);
-            }
-            // 跳过逗号和空白字符
-        }
-        
-        return result;
     }
     
     /**
@@ -657,6 +732,64 @@ public class LLMManager {
         }
         
         return null;
+    }
+    
+    /**
+     * 从JSON字符串中提取数组
+     */
+    private List<String> extractJsonArray(String json, String key) {
+        List<String> result = new ArrayList<>();
+        String searchKey = "\"" + key + "\"";
+        int keyIndex = json.indexOf(searchKey);
+        if (keyIndex < 0) {
+            return result;
+        }
+        
+        int colonIndex = json.indexOf(":", keyIndex);
+        if (colonIndex < 0) {
+            return result;
+        }
+        
+        int arrayStart = colonIndex + 1;
+        // 跳过空白字符
+        while (arrayStart < json.length() && Character.isWhitespace(json.charAt(arrayStart))) {
+            arrayStart++;
+        }
+        
+        if (arrayStart >= json.length() || json.charAt(arrayStart) != '[') {
+            return result;
+        }
+        
+        // 提取数组内容
+        int bracketCount = 0;
+        boolean inString = false;
+        int contentStart = -1;
+        
+        for (int i = arrayStart; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (c == '"' && (i == 0 || json.charAt(i - 1) != '\\')) {
+                if (inString && contentStart >= 0) {
+                    // 字符串结束
+                    result.add(json.substring(contentStart, i));
+                    contentStart = -1;
+                }
+                inString = !inString;
+                if (inString) {
+                    contentStart = i + 1;
+                }
+            } else if (!inString) {
+                if (c == '[') {
+                    bracketCount++;
+                } else if (c == ']') {
+                    bracketCount--;
+                    if (bracketCount == 0) {
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return result;
     }
     
     /**

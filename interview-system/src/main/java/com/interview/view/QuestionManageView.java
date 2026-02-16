@@ -90,7 +90,7 @@ public class QuestionManageView extends BorderPane {
         
         TableColumn<Question, String> diffCol = new TableColumn<>("难度");
         diffCol.setCellValueFactory(cell -> 
-            new SimpleStringProperty(cell.getValue().getDifficultyDisplayName()));
+            new SimpleStringProperty(cell.getValue().getLevelDisplayName()));
         diffCol.setPrefWidth(80);
         
         TableColumn<Question, String> catCol = new TableColumn<>("分类");

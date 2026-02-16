@@ -476,7 +476,7 @@ public class EvaluationView extends BorderPane {
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 boolean success = evaluationService.saveScore(
-                    selectedRecord.getId(),
+                    selectedRecord,
                     scores,
                     commentsArea.getText(),
                     reasoningArea.getText()

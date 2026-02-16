@@ -1,7 +1,7 @@
 package com.interview.view;
 
 import com.interview.model.Question;
-import com.interview.model.Question.Difficulty;
+import com.interview.model.Question.QuestionLevel;
 import com.interview.model.Question.QuestionType;
 import com.interview.service.QuestionService;
 import javafx.geometry.Insets;
@@ -70,11 +70,12 @@ public class QuestionExtractView extends BorderPane {
         // 难度
         Label diffLabel = new Label("难度等级:");
         difficultyComboBox = new ComboBox<>();
-        difficultyComboBox.getItems().add("全部难度");
-        for (Difficulty diff : Difficulty.values()) {
-            difficultyComboBox.getItems().add(diff.getDisplayName());
-        }
-        difficultyComboBox.setValue("全部难度");
+        difficultyComboBox.getItems().add("全部");
+        difficultyComboBox.getItems().add(QuestionLevel.BASIC.getDisplayName());
+        difficultyComboBox.getItems().add(QuestionLevel.INTERMEDIATE.getDisplayName());
+        difficultyComboBox.getItems().add(QuestionLevel.ADVANCED.getDisplayName());
+        difficultyComboBox.getItems().add(QuestionLevel.SPECIALIZATION_THREE.getDisplayName());
+        difficultyComboBox.setValue("全部");
         difficultyComboBox.setPrefWidth(200);
         
         // 分类
@@ -142,12 +143,12 @@ public class QuestionExtractView extends BorderPane {
         int count = countSpinner.getValue();
         QuestionType type = typeComboBox.getSelectionModel().getSelectedIndex() > 0 ? 
             QuestionType.values()[typeComboBox.getSelectionModel().getSelectedIndex() - 1] : null;
-        Difficulty difficulty = difficultyComboBox.getSelectionModel().getSelectedIndex() > 0 ? 
-            Difficulty.values()[difficultyComboBox.getSelectionModel().getSelectedIndex() - 1] : null;
+        QuestionLevel questionLevel = difficultyComboBox.getSelectionModel().getSelectedIndex() > 0 ? 
+            QuestionLevel.values()[difficultyComboBox.getSelectionModel().getSelectedIndex() - 1] : null;
         String category = categoryComboBox.getSelectionModel().getSelectedIndex() > 0 ? 
             categoryComboBox.getValue() : null;
         
-        List<Question> questions = questionService.extractQuestions(count, type, difficulty, category);
+        List<Question> questions = questionService.extractQuestions(count, type, questionLevel, category);
         
         if (questions.isEmpty()) {
             resultArea.setText("未能抽取到符合条件的题目，请调整筛选条件后重试。");
@@ -162,8 +163,8 @@ public class QuestionExtractView extends BorderPane {
             if (type != null) {
                 sb.append("题目类型: ").append(type.getDisplayName()).append("\n");
             }
-            if (difficulty != null) {
-                sb.append("难度等级: ").append(difficulty.getDisplayName()).append("\n");
+            if (questionLevel != null) {
+                sb.append("难度等级: ").append(questionLevel.getDisplayName()).append("\n");
             }
             if (category != null) {
                 sb.append("分类筛选: ").append(category).append("\n");
@@ -175,7 +176,7 @@ public class QuestionExtractView extends BorderPane {
                 sb.append("【题目 ").append(i++).append("】\n");
                 sb.append("标题: ").append(q.getTitle()).append("\n");
                 sb.append("类型: ").append(q.getTypeDisplayName()).append("\n");
-                sb.append("难度: ").append(q.getDifficultyDisplayName()).append("\n\n");
+                sb.append("等级: ").append(q.getLevelDisplayName()).append("\n\n");
                 sb.append("内容:\n").append(q.getContent()).append("\n\n");
                 if (q.getAnswer() != null && !q.getAnswer().isEmpty()) {
                     sb.append("参考答案:\n").append(q.getAnswer()).append("\n");

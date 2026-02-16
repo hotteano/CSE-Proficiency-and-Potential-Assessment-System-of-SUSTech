@@ -3,7 +3,8 @@ package com.interview.service;
 import com.interview.dao.QuestionDao;
 import com.interview.model.Permission;
 import com.interview.model.Question;
-import com.interview.model.Question.Difficulty;
+import com.interview.model.Question.QuestionLevel;
+import com.interview.model.Question.SpecializationType;
 import com.interview.model.Question.QuestionType;
 
 import java.sql.SQLException;
@@ -42,8 +43,8 @@ public class QuestionService {
         if (question.getType() == null) {
             return "请选择题目类型";
         }
-        if (question.getDifficulty() == null) {
-            return "请选择难度等级";
+        if (question.getLevel() == null) {
+            return "请选择题目等级";
         }
         
         // 设置创建者
@@ -155,13 +156,13 @@ public class QuestionService {
      * 需要 QUESTION_READ 权限
      */
     public List<Question> searchQuestions(String keyword, QuestionType type, 
-                                          Difficulty difficulty, String category) {
+                                          QuestionLevel level, String category) {
         if (!authService.hasPermission(Permission.QUESTION_READ)) {
             return List.of();
         }
         
         try {
-            return questionDao.search(keyword, type, difficulty, category);
+            return questionDao.search(keyword, type, level, null, category);
         } catch (SQLException e) {
             System.err.println("搜索题目失败: " + e.getMessage());
             return List.of();
@@ -179,7 +180,7 @@ public class QuestionService {
      * @return 抽取的题目列表
      */
     public List<Question> extractQuestions(int count, QuestionType type, 
-                                           Difficulty difficulty, String category) {
+                                           QuestionLevel level, String category) {
         if (!authService.hasPermission(Permission.QUESTION_EXTRACT)) {
             System.err.println("权限不足，无法抽取题目");
             return List.of();
@@ -191,7 +192,7 @@ public class QuestionService {
         }
         
         try {
-            return questionDao.extractRandom(count, type, difficulty, category);
+            return questionDao.extractRandom(count, type, level, null, category);
         } catch (SQLException e) {
             System.err.println("抽取题目失败: " + e.getMessage());
             return List.of();
