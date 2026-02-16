@@ -208,6 +208,31 @@ public class EvaluationScoreDao {
     }
     
     /**
+     * 查找特定面试记录的所有评委评分
+     */
+    public List<EvaluationScore> findHumanScoresByInterview(int interviewRecordId) throws SQLException {
+        List<EvaluationScore> scores = new ArrayList<>();
+        String sql = """
+            SELECT * FROM evaluation_scores 
+            WHERE interview_record_id = ? AND score_type = 'HUMAN'
+            ORDER BY scored_at ASC
+            """;
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, interviewRecordId);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    scores.add(mapResultSetToScore(rs));
+                }
+            }
+        }
+        return scores;
+    }
+    
+    /**
      * 更新评分记录
      */
     public boolean update(EvaluationScore score) throws SQLException {

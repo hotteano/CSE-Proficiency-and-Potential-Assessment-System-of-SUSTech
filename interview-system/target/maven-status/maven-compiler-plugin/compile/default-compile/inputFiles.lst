@@ -1,13 +1,17 @@
+C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\service\MultiEvaluatorService.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\service\InterviewControlService.java
+C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\view\DatabaseConfigView.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\model\QuestionExtractRecord.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\view\EvaluationView.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\view\InterviewRecordManageView.java
+C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\model\EvaluatorRole.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\service\MockAIAnalysisService.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\service\SpeechRecognitionService.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\model\EvaluationDimension.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\JavaFXApp.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\model\LLMConfig.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\config\DatabaseConfig.java
+C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\model\EvaluationSummary.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\view\MainView.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\model\InterviewRecord.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\service\UserService.java
@@ -33,6 +37,7 @@ C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\service\LLMManager.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\model\User.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\view\LoginView.java
+C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\dao\EvaluationSummaryDao.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\view\ChangePasswordDialog.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\service\AuthService.java
 C:\Users\edwar\SUSTech-Computer-Science-Level-Assessment-System\interview-system\src\main\java\com\interview\dao\LLMConfigDao.java

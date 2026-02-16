@@ -108,6 +108,7 @@ public class MainView extends BorderPane {
                 addTab("面试评分", new EvaluationView(authService));
                 addTab("评测报告", new ReportView(authService));
                 addTab("API配置", new LLMConfigView(authService));
+                addTab("数据库配置", new DatabaseConfigView());
                 addTab("用户管理", new UserManageView(userService));
             }
             case EXAMINER -> {
@@ -120,6 +121,7 @@ public class MainView extends BorderPane {
             case QUESTION_CREATOR -> {
                 addTab("题目浏览", new QuestionBrowseView(questionService));
                 addTab("题目管理", new QuestionManageView(questionService));
+                addTab("数据库配置", new DatabaseConfigView());
             }
             case CANDIDATE -> {
                 addTab("我的面试记录", new InterviewRecordManageView(recordService, false));
