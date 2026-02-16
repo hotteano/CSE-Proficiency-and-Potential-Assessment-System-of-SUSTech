@@ -1,14 +1,16 @@
 package com.interview.util;
 
 import com.interview.config.DatabaseConfig;
+import com.interview.dao.EvaluationScoreDao;
 import com.interview.dao.InterviewRecordDao;
+import com.interview.dao.LLMConfigDao;
 import com.interview.dao.QuestionDao;
 import com.interview.dao.UserDao;
+import com.interview.model.LLMConfig;
 import com.interview.model.Role;
 import com.interview.model.User;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
@@ -20,11 +22,15 @@ public class DatabaseInitializer {
     private final UserDao userDao;
     private final QuestionDao questionDao;
     private final InterviewRecordDao recordDao;
+    private final EvaluationScoreDao scoreDao;
+    private final LLMConfigDao llmConfigDao;
     
     public DatabaseInitializer() {
         this.userDao = new UserDao();
         this.questionDao = new QuestionDao();
         this.recordDao = new InterviewRecordDao();
+        this.scoreDao = new EvaluationScoreDao();
+        this.llmConfigDao = new LLMConfigDao();
     }
     
     /**
@@ -45,6 +51,17 @@ public class DatabaseInitializer {
         // 创建面试记录表
         recordDao.createTable();
         System.out.println("面试记录表创建完成");
+        
+        // 创建评分记录表
+        scoreDao.createTable();
+        System.out.println("评分记录表创建完成");
+        
+        // 创建LLM配置表
+        llmConfigDao.createTable();
+        System.out.println("LLM配置表创建完成");
+        
+        // 创建默认LLM配置
+        createDefaultLLMConfig();
         
         // 创建初始管理员账号（如果不存在）
         createDefaultAdmin();
@@ -108,6 +125,36 @@ public class DatabaseInitializer {
             
         } catch (SQLException e) {
             System.err.println("创建示例考生账号失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 创建默认LLM配置
+     */
+    private void createDefaultLLMConfig() {
+        try {
+            // 检查是否已有配置
+            if (llmConfigDao.findDefault() != null) {
+                System.out.println("LLM配置已存在");
+                return;
+            }
+            
+            LLMConfig config = new LLMConfig();
+            config.setName("默认-DeepSeek-Thinking");
+            config.setProvider(LLMConfig.LLMProvider.DEEPSEEK_THINKING);
+            config.setModelName("deepseek-reasoner");
+            config.setApiEndpoint("https://api.deepseek.com/v1/chat/completions");
+            config.setApiKey(""); // 用户需要自行配置
+            config.setDefault(true);
+            config.setEnabled(true);
+            config.setTimeout(60);
+            
+            if (llmConfigDao.insert(config)) {
+                System.out.println("默认LLM配置创建成功（请配置API Key）");
+            }
+            
+        } catch (Exception e) {
+            System.err.println("创建默认LLM配置失败: " + e.getMessage());
         }
     }
     

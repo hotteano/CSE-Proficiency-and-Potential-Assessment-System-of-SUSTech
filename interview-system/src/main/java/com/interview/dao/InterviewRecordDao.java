@@ -30,7 +30,16 @@ public class InterviewRecordDao {
                 voice_file_size BIGINT,
                 notes TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                transcribed_text TEXT,
+                refined_text TEXT,
+                ai_analysis_result TEXT,
+                ai_raw_response TEXT,
+                ai_analysis_time TIMESTAMP,
+                is_recording BOOLEAN DEFAULT FALSE,
+                recording_start_time TIMESTAMP,
+                recording_duration BIGINT,
+                question_ids TEXT
             )
             """;
         

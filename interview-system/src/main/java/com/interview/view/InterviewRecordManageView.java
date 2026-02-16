@@ -65,7 +65,7 @@ public class InterviewRecordManageView extends BorderPane {
         panel.setPadding(new Insets(5));
         
         Label titleLabel = new Label("记录列表");
-        titleLabel.setFont(Font.font(FontWeight.BOLD, 14));
+        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
         
         recordTable = new TableView<>();
         
@@ -157,7 +157,7 @@ public class InterviewRecordManageView extends BorderPane {
         panel.setPadding(new Insets(5));
         
         Label titleLabel = new Label("详细信息");
-        titleLabel.setFont(Font.font(FontWeight.BOLD, 14));
+        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
         
         detailArea = new TextArea();
         detailArea.setEditable(false);

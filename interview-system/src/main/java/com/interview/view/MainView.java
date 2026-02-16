@@ -5,6 +5,8 @@ import com.interview.model.Permission;
 import com.interview.model.Role;
 import com.interview.model.User;
 import com.interview.service.AuthService;
+import com.interview.service.EvaluationService;
+import com.interview.service.InterviewControlService;
 import com.interview.service.InterviewRecordService;
 import com.interview.service.QuestionService;
 import com.interview.service.UserService;
@@ -25,6 +27,7 @@ public class MainView extends BorderPane {
     private final QuestionService questionService;
     private final UserService userService;
     private final InterviewRecordService recordService;
+    private final EvaluationService evaluationService;
     
     private Label statusLabel;
     private TabPane tabPane;
@@ -34,6 +37,7 @@ public class MainView extends BorderPane {
         this.questionService = new QuestionService(authService);
         this.userService = new UserService(authService);
         this.recordService = new InterviewRecordService(authService);
+        this.evaluationService = new EvaluationService(authService);
         
         setStyle("-fx-background-color: #f5f5f5;");
         
@@ -92,26 +96,34 @@ public class MainView extends BorderPane {
         Role role = currentUser.getRole();
         
         // 根据角色添加标签页
+        InterviewControlService controlService = new InterviewControlService(authService);
+        
         switch (role) {
             case ADMIN -> {
                 addTab("题目浏览", new QuestionBrowseView(questionService));
                 addTab("题目管理", new QuestionManageView(questionService));
                 addTab("题目抽取", new QuestionExtractView(questionService));
+                addTab("面试控制", new InterviewControlView(controlService, questionService));
                 addTab("面试记录", new InterviewRecordManageView(recordService, true));
+                addTab("面试评分", new EvaluationView(evaluationService, recordService));
+                addTab("评测报告", new ReportView());
+                addTab("API配置", new LLMConfigView(authService));
                 addTab("用户管理", new UserManageView(userService));
             }
             case EXAMINER -> {
                 addTab("题目浏览", new QuestionBrowseView(questionService));
                 addTab("题目抽取", new QuestionExtractView(questionService));
+                addTab("面试控制", new InterviewControlView(controlService, questionService));
                 addTab("面试记录", new InterviewRecordManageView(recordService, true));
+                addTab("面试评分", new EvaluationView(evaluationService, recordService));
             }
             case QUESTION_CREATOR -> {
                 addTab("题目浏览", new QuestionBrowseView(questionService));
                 addTab("题目管理", new QuestionManageView(questionService));
             }
             case CANDIDATE -> {
-                addTab("面试中心", new CandidateInterviewView(recordService));
                 addTab("我的面试记录", new InterviewRecordManageView(recordService, false));
+                addTab("我的评测报告", new ReportView());
             }
         }
         

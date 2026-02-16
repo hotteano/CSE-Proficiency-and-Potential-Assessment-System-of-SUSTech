@@ -20,6 +20,17 @@ public class InterviewRecord {
     private LocalDateTime createdAt;     // 创建时间
     private LocalDateTime updatedAt;     // 更新时间
     
+    // 新增字段：语音识别和AI分析
+    private String transcribedText;      // 语音识别转写文本
+    private String refinedText;          // 精修后的文本
+    private String aiAnalysisResult;     // AI分析结果（JSON格式）
+    private String aiRawResponse;        // AI原始返回
+    private LocalDateTime aiAnalysisTime;// AI分析时间
+    private boolean isRecording;         // 是否正在录音
+    private LocalDateTime recordingStartTime; // 录音开始时间
+    private Long recordingDuration;      // 录音时长（毫秒）
+    private String questionIds;          // 关联的题目ID列表（逗号分隔）
+    
     // 面试状态枚举
     public enum InterviewStatus {
         SCHEDULED("已安排", "面试已安排，等待进行"),
@@ -171,6 +182,47 @@ public class InterviewRecord {
         }
         
         return String.format("%.2f %s", (double) voiceFileSize / Math.pow(1024, unitIndex), units[unitIndex]);
+    }
+    
+    // 新增字段的 Getters and Setters
+    public String getTranscribedText() { return transcribedText; }
+    public void setTranscribedText(String transcribedText) { this.transcribedText = transcribedText; }
+    
+    public String getRefinedText() { return refinedText; }
+    public void setRefinedText(String refinedText) { this.refinedText = refinedText; }
+    
+    public String getAiAnalysisResult() { return aiAnalysisResult; }
+    public void setAiAnalysisResult(String aiAnalysisResult) { this.aiAnalysisResult = aiAnalysisResult; }
+    
+    public String getAiRawResponse() { return aiRawResponse; }
+    public void setAiRawResponse(String aiRawResponse) { this.aiRawResponse = aiRawResponse; }
+    
+    public LocalDateTime getAiAnalysisTime() { return aiAnalysisTime; }
+    public void setAiAnalysisTime(LocalDateTime aiAnalysisTime) { this.aiAnalysisTime = aiAnalysisTime; }
+    
+    public boolean isRecording() { return isRecording; }
+    public void setRecording(boolean recording) { isRecording = recording; }
+    
+    public LocalDateTime getRecordingStartTime() { return recordingStartTime; }
+    public void setRecordingStartTime(LocalDateTime recordingStartTime) { this.recordingStartTime = recordingStartTime; }
+    
+    public Long getRecordingDuration() { return recordingDuration; }
+    public void setRecordingDuration(Long recordingDuration) { this.recordingDuration = recordingDuration; }
+    
+    public String getQuestionIds() { return questionIds; }
+    public void setQuestionIds(String questionIds) { this.questionIds = questionIds; }
+    
+    /**
+     * 获取录音时长显示
+     */
+    public String getRecordingDurationDisplay() {
+        if (recordingDuration == null || recordingDuration == 0) {
+            return "-";
+        }
+        long seconds = recordingDuration / 1000;
+        long minutes = seconds / 60;
+        seconds = seconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
     }
     
     @Override

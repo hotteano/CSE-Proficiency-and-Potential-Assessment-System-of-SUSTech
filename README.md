@@ -1,200 +1,62 @@
-# 面试题目抽取系统（JavaFX + PostgreSQL 版本）
+# 计算机科学能力和潜力测评体系
 
-一个基于 JavaFX 和 PostgreSQL 的面试题目管理系统，采用现代化 UI 设计，支持四种用户角色，包含面试语音录制功能。
+## 评测对象
 
-## 功能特性
+于计算机科学感兴趣的本科生、研究生等，包括计算机系内的学生以及其他专业的学生。
 
-### 用户角色与权限
+## 评测方式
 
-系统支持四种用户角色：
+面试。
 
-| 角色 | 权限 |
-|------|------|
-| **管理员** | 用户管理、题目管理、题目抽取、面试记录管理、系统配置 |
-| **考官** | 浏览题目、抽取题目、查看所有面试记录、添加面试评价 |
-| **试题编制者** | 创建/编辑/删除题目、浏览题目 |
-| **考生** | 创建面试记录、上传语音文件、查看自己的面试记录 |
+通过评委和大模型交叉评分的方式进行评测。评委由计算机科学领域的同行（对于本测评系统而言，主要为学生）组成，负责对面试者的表现进行评分。同时，使用大模型（如GPT-4）对面试者的回答进行分析和评分，以提供更全面和客观的评测结果。
 
-### 技术栈
+## 评测维度
 
-- **Java 17**
-- **JavaFX 19** - 现代化 GUI 框架
-- **PostgreSQL** - 关系型数据库
-- **Maven** - 项目构建
-- **jBCrypt** - 密码加密
+- 技能（Skill）
+  - 编程能力（Programming Skills）
+  - 经典框架和环境配置（Familiarity with Classic Frameworks and Environment Setup）
+  - 工程优化能力与代码品味（Engineering Optimization and Code Quality）
+  - 代码纠错能力（Code Debugging Skills）
+  - 系统设计能力（System Design Skills）
+- 学术与研究潜力（Academic and Research Potential）
+  - 创意表述能力（Creative Expression Ability）
+  - 研究直觉与品味（Research Intuition and Taste）
+  - 创新点的验证能力（Ability to Validate Innovative Ideas）
+  - 理论系统构建能力（Ability to Build Theoretical Systems）
+- 沟通能力（Communication Skills）
+  - 严谨性（Clarity and Precision of Expression）
+  - 逻辑性（Logical Coherence）
+  - 说服力（Persuasiveness）
+- 数学能力（Mathematical Ability）
+  - 基本算术能力（Basic Arithmetic Skills）
+  - 数学建模能力（Mathematical Modeling Skills）
+  - 数学证明能力（Mathematical Proof Skills）
+- 设计与商业远见（Design and Business Acumen）
+  - 产品设计能力（Product Design Skills）
+  - 商业与市场洞察力（Business and MarketInsight）
+  - 开源产品设计与维护能力（Open Source Product Design and Maintenance Skills）
 
-## 项目结构
+题型根据上述的五个维度进行分类，涵盖编程题、系统设计题、研究创新题、沟通表达题、数学建模题等多种类型，以全面评测面试者在计算机科学领域的能力和潜力。
 
-```
-interview-system/
-├── src/main/java/com/interview/
-│   ├── Main.java                 # 程序入口
-│   ├── JavaFXApp.java            # JavaFX 应用主类
-│   ├── config/                   # 数据库配置
-│   ├── dao/                      # 数据访问对象（PostgreSQL）
-│   ├── model/                    # 数据模型
-│   ├── service/                  # 业务逻辑
-│   ├── util/                     # 工具类
-│   └── view/                     # JavaFX 视图层 ⭐
-│       ├── LoginView.java        # 登录界面
-│       ├── MainView.java         # 主界面
-│       ├── RegisterDialog.java   # 注册对话框
-│       ├── QuestionBrowseView.java      # 题目浏览
-│       ├── QuestionManageView.java      # 题目管理
-│       ├── QuestionExtractView.java     # 题目抽取
-│       ├── QuestionEditDialog.java      # 题目编辑
-│       ├── UserManageView.java          # 用户管理
-│       ├── UserEditDialog.java          # 用户编辑
-│       ├── CandidateInterviewView.java  # 考生面试中心
-│       ├── InterviewRecordManageView.java # 面试记录管理
-│       └── ChangePasswordDialog.java    # 修改密码
-├── src/main/resources/
-│   ├── styles.css                # JavaFX 样式表
-│   └── database.sql              # 数据库初始化脚本
-└── pom.xml                       # Maven 配置
-```
+## 面试系统功能
 
-## 快速开始
+- 题目管理
+- 题目抽取
+- 考生面试中心
+- 面试记录管理
+- 评测系统
+- 评测结果分析与报告生成
 
-### 1. 安装 PostgreSQL
+## 评测结果分析与报告生成
 
-```bash
-# 创建数据库
-createdb interview_system
+评测结果分析与报告生成模块负责对面试者的表现进行综合分析，并生成详细的评测报告。该模块将结合评委评分和大模型分析结果，提供以下内容：
 
-# 或使用 psql
-psql -c "CREATE DATABASE interview_system;"
-```
+- 综合评分：根据各评测维度的评分，计算出面试者的综合评分。
+- 维度分析：对每个评测维度进行详细分析，指出面试者的优势和不足之处。
+- 发展建议：根据面试者的表现，提供针对性的建议，帮助其在计算机科学领域进一步发展。
+- 结果可视化：通过图表和数据可视化工具，直观展示面试者的表现和评测结果。
 
-### 2. 编译运行
+测评报告来源：
 
-```bash
-# 编译项目
-mvn clean package
-
-# 运行（使用 JavaFX Maven 插件）
-mvn javafx:run
-
-# 或运行 jar（需要 JavaFX 模块）
-java --module-path "${PATH_TO_FX}" --add-modules javafx.controls,javafx.fxml \
-  -jar target/interview-system-1.0-SNAPSHOT.jar
-```
-
-### 3. 默认账号
-
-| 用户名 | 密码 | 角色 |
-|--------|------|------|
-| admin | admin123 | 管理员 |
-| candidate | candidate123 | 考生（示例）|
-
-## 命令行参数
-
-```bash
-java -jar interview-system.jar \
-  --db-host localhost \
-  --db-port 5432 \
-  --db-name interview_system \
-  --db-user postgres \
-  --db-password your_password
-```
-
-| 参数 | 说明 | 默认值 |
-|------|------|--------|
-| `--db-host` | PostgreSQL 主机地址 | localhost |
-| `--db-port` | PostgreSQL 端口 | 5432 |
-| `--db-name` | PostgreSQL 数据库名 | interview_system |
-| `--db-user` | PostgreSQL 用户名 | postgres |
-| `--db-password` | PostgreSQL 密码 | postgres |
-
-## UI 截图说明
-
-### 登录界面
-- 简洁的登录表单
-- 用户名/密码验证
-- 用户注册入口
-
-### 主界面
-- 基于角色的动态菜单
-- 标签页导航
-- 状态栏显示当前用户信息
-
-### 题目管理
-- 表格展示题目列表
-- 搜索筛选功能
-- 新增/编辑/删除题目
-
-### 题目抽取
-- 设置抽取条件（数量、类型、难度）
-- 随机抽取算法
-- 结果导出功能
-
-### 考生面试中心
-- 开始新面试
-- 上传语音文件（MP3, WAV, OGG, M4A）
-- 查看面试历史
-
-### 面试记录管理
-- 查看所有面试记录（考官/管理员）
-- 播放语音文件
-- 添加面试评价
-- 更新面试状态
-
-## 数据库表结构
-
-### users（用户表）
-```sql
-id, username, password_hash, real_name, email, 
-role, active, created_at, last_login
-```
-
-### questions（题目表）
-```sql
-id, title, content, answer, type, difficulty, 
-category, created_by, active, created_at, updated_at
-```
-
-### interview_records（面试记录表）
-```sql
-id, candidate_username, examiner_username, interview_time, status,
-voice_file_path, voice_file_name, voice_file_size, notes, created_at, updated_at
-```
-
-## 语音文件存储
-
-语音文件默认存储在项目目录下的 `voice_records/` 文件夹中：
-
-```
-voice_records/
-└── {candidate_username}_{recordId}_{timestamp}.{ext}
-```
-
-示例：`candidate_1_1708001234567.mp3`
-
-## 界面特点
-
-JavaFX 版本相比 Swing 版本的优势：
-
-1. **现代化外观** - 使用 CSS 样式，支持主题定制
-2. **流畅动画** - 内置过渡动画效果
-3. **响应式布局** - 自适应窗口大小变化
-4. **更好的控件** - 日期选择器、进度条、对话框等
-5. **FXML 支持** - 可使用 XML 定义界面（当前使用代码构建）
-
-## 开发说明
-
-### 保持后端不变
-
-以下包内容完全保持不变：
-- `com.interview.model.*` - 所有数据模型
-- `com.interview.dao.*` - 所有数据访问对象
-- `com.interview.service.*` - 所有业务逻辑
-- `com.interview.config.DatabaseConfig`
-- `com.interview.util.*`
-
-### 仅替换 GUI 层
-
-将 `com.interview.gui` (Swing) 替换为 `com.interview.view` (JavaFX)
-
-## 许可证
-
-MIT License
+- 评委解释评分理由
+- 大模型分析面试者的表现，提供客观的评测结果和建议

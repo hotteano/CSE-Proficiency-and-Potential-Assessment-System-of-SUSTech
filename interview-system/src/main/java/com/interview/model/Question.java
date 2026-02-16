@@ -20,6 +20,15 @@ public class Question {
     private LocalDateTime updatedAt; // 最后更新时间
     private boolean active;          // 是否启用
     
+    // 新增：题目评测维度（一道题可考察多个维度）
+    private java.util.List<EvaluationDimension> evaluationDimensions;
+    
+    // 新增：题目设计意图描述
+    private String designIntent;
+    
+    // 新增：评分参考标准（评委/AI评分的参考依据）
+    private String scoringCriteria;
+    
     // 题目类型枚举
     public enum QuestionType {
         TECHNICAL("技术题", "编程语言、算法、数据结构等技术相关问题"),
@@ -74,6 +83,7 @@ public class Question {
     public Question() {
         this.active = true;
         this.createdAt = LocalDateTime.now();
+        this.evaluationDimensions = new java.util.ArrayList<>();
     }
     
     public Question(String title, String content, String answer, 
@@ -181,6 +191,46 @@ public class Question {
      */
     public String getTypeDisplayName() {
         return type != null ? type.getDisplayName() : "";
+    }
+    
+    // 新增字段的 Getters and Setters
+    public java.util.List<EvaluationDimension> getEvaluationDimensions() {
+        return evaluationDimensions;
+    }
+    
+    public void setEvaluationDimensions(java.util.List<EvaluationDimension> evaluationDimensions) {
+        this.evaluationDimensions = evaluationDimensions;
+    }
+    
+    public String getDesignIntent() {
+        return designIntent;
+    }
+    
+    public void setDesignIntent(String designIntent) {
+        this.designIntent = designIntent;
+    }
+    
+    public String getScoringCriteria() {
+        return scoringCriteria;
+    }
+    
+    public void setScoringCriteria(String scoringCriteria) {
+        this.scoringCriteria = scoringCriteria;
+    }
+    
+    /**
+     * 获取评测维度显示名称列表
+     */
+    public String getDimensionsDisplayName() {
+        if (evaluationDimensions == null || evaluationDimensions.isEmpty()) {
+            return "未设置";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < evaluationDimensions.size(); i++) {
+            if (i > 0) sb.append(", ");
+            sb.append(evaluationDimensions.get(i).getDisplayName());
+        }
+        return sb.toString();
     }
     
     /**

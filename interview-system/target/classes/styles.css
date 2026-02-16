@@ -1,0 +1,221 @@
+/* JavaFX 样式表 */
+
+/* 根节点样式 */
+.root {
+    -fx-font-family: "Microsoft YaHei", "System", sans-serif;
+    -fx-font-size: 13px;
+}
+
+/* 主标题 */
+.title-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4682b4;
+}
+
+/* 副标题 */
+.subtitle-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+/* 按钮样式 */
+.button {
+    -fx-background-color: #4682b4;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #5a9fd4;
+}
+
+.button:pressed {
+    -fx-background-color: #357abd;
+}
+
+.button-secondary {
+    -fx-background-color: #6c757d;
+}
+
+.button-secondary:hover {
+    -fx-background-color: #7d868c;
+}
+
+.button-success {
+    -fx-background-color: #28a745;
+}
+
+.button-success:hover {
+    -fx-background-color: #34ce57;
+}
+
+.button-danger {
+    -fx-background-color: #dc3545;
+}
+
+.button-danger:hover {
+    -fx-background-color: #e04b59;
+}
+
+/* 文本框样式 */
+.text-field, .password-field, .text-area, .combo-box {
+    -fx-border-color: #ccc;
+    -fx-border-radius: 4px;
+    -fx-padding: 6px;
+}
+
+.text-field:focused, .password-field:focused, .text-area:focused {
+    -fx-border-color: #4682b4;
+}
+
+/* 表格样式 */
+.table-view {
+    -fx-table-cell-border-color: transparent;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f0f0f0;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #4682b4;
+}
+
+/* TabPane 样式 */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: #f0f0f0;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #e0e0e0;
+    -fx-padding: 8px 16px;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #4682b4;
+    -fx-text-base-color: white;
+}
+
+/* 分隔面板 */
+.split-pane *.split-pane-divider {
+    -fx-padding: 0 3px 0 3px;
+    -fx-background-color: #ddd;
+}
+
+/* 状态栏 */
+.status-bar {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #ccc transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 5px 10px;
+}
+
+/* 滚动面板 */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* 登录面板 */
+.login-panel {
+    -fx-background-color: white;
+    -fx-padding: 40px;
+    -fx-spacing: 15px;
+    -fx-alignment: center;
+}
+
+/* 卡片样式 */
+.card {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 5px;
+    -fx-padding: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);
+}
+
+/* 警告标签 */
+.warning-label {
+    -fx-text-fill: #ff8c00;
+    -fx-font-size: 12px;
+}
+
+/* 错误标签 */
+.error-label {
+    -fx-text-fill: #dc3545;
+    -fx-font-size: 12px;
+}
+
+/* 成功标签 */
+.success-label {
+    -fx-text-fill: #28a745;
+    -fx-font-size: 12px;
+}
+
+/* 菜单栏 */
+.menu-bar {
+    -fx-background-color: #f8f9fa;
+}
+
+/* 工具提示 */
+.tooltip {
+    -fx-font-size: 12px;
+    -fx-background-color: #333;
+    -fx-text-fill: white;
+    -fx-padding: 5px 10px;
+}
+
+/* 进度指示器 */
+.progress-indicator {
+    -fx-progress-color: #4682b4;
+}
+
+/* 列表视图 */
+.list-view {
+    -fx-border-color: #ccc;
+}
+
+.list-cell:selected {
+    -fx-background-color: #4682b4;
+}
+
+/* 滑块 */
+.slider .track {
+    -fx-background-color: #ddd;
+}
+
+.slider .thumb {
+    -fx-background-color: #4682b4;
+}
+
+/* 旋转器 */
+.spinner {
+    -fx-border-color: #ccc;
+    -fx-border-radius: 4px;
+}
+
+/* 日期选择器 */
+.date-picker {
+    -fx-border-color: #ccc;
+    -fx-border-radius: 4px;
+}
+
+/* 复选框和单选框 */
+.check-box .box, .radio-button .radio {
+    -fx-border-color: #ccc;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: #4682b4;
+}
+
+.radio-button:selected .dot {
+    -fx-background-color: #4682b4;
+}

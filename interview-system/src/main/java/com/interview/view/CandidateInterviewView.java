@@ -69,7 +69,7 @@ public class CandidateInterviewView extends BorderPane {
         panel.setPadding(new Insets(10, 0, 10, 0));
         
         Label titleLabel = new Label("我的面试记录");
-        titleLabel.setFont(Font.font(FontWeight.BOLD, 14));
+        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
         
         recordTable = new TableView<>();
         

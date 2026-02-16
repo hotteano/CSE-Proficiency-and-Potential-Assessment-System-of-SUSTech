@@ -117,7 +117,7 @@ public class QuestionBrowseView extends BorderPane {
         panel.setPadding(new Insets(5));
         
         Label titleLabel = new Label("题目列表");
-        titleLabel.setFont(Font.font(FontWeight.BOLD, 14));
+        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
         
         // 表格
         questionTable = new TableView<>();
@@ -170,11 +170,11 @@ public class QuestionBrowseView extends BorderPane {
         panel.setPadding(new Insets(5));
         
         Label titleLabel = new Label("题目详情");
-        titleLabel.setFont(Font.font(FontWeight.BOLD, 14));
+        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
         
         // 题目内容
         Label contentTitle = new Label("题目内容:");
-        contentTitle.setFont(Font.font(FontWeight.BOLD, 12));
+        contentTitle.setFont(Font.font(null, FontWeight.BOLD, 12));
         contentArea = new TextArea();
         contentArea.setEditable(false);
         contentArea.setWrapText(true);
@@ -182,7 +182,7 @@ public class QuestionBrowseView extends BorderPane {
         
         // 参考答案
         Label answerTitle = new Label("参考答案:");
-        answerTitle.setFont(Font.font(FontWeight.BOLD, 12));
+        answerTitle.setFont(Font.font(null, FontWeight.BOLD, 12));
         answerArea = new TextArea();
         answerArea.setEditable(false);
         answerArea.setWrapText(true);
