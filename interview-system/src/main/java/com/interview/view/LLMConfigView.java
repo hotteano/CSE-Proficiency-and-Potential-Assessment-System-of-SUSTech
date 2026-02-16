@@ -2,6 +2,7 @@ package com.interview.view;
 
 import com.interview.model.LLMConfig;
 import com.interview.service.AuthService;
+import com.interview.service.LLMConfigService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,15 +19,18 @@ import java.util.List;
 public class LLMConfigView extends BorderPane {
     
     private final AuthService authService;
+    private final LLMConfigService configService;
     private TableView<LLMConfig> configTable;
     
     public LLMConfigView(AuthService authService) {
         this.authService = authService;
+        this.configService = new LLMConfigService();
         
         setPadding(new Insets(10));
         setStyle("-fx-background-color: white;");
         
         initComponents();
+        loadConfigs();
     }
     
     private void initComponents() {
@@ -75,9 +79,6 @@ public class LLMConfigView extends BorderPane {
         
         configTable.getColumns().addAll(nameCol, providerCol, modelCol, defaultCol, statusCol);
         
-        // 加载配置（简化版，实际需要调用服务）
-        loadConfigs();
-        
         panel.getChildren().add(configTable);
         VBox.setVgrow(configTable, Priority.ALWAYS);
         
@@ -103,17 +104,18 @@ public class LLMConfigView extends BorderPane {
         deleteBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
         deleteBtn.setOnAction(e -> deleteConfig());
         
-        Button testBtn = new Button("测试连接");
-        testBtn.setOnAction(e -> testConnection());
+        Button refreshBtn = new Button("刷新");
+        refreshBtn.setOnAction(e -> loadConfigs());
         
-        panel.getChildren().addAll(addBtn, editBtn, setDefaultBtn, deleteBtn, testBtn);
+        panel.getChildren().addAll(addBtn, editBtn, setDefaultBtn, deleteBtn, refreshBtn);
         
         return panel;
     }
     
     private void loadConfigs() {
-        // 实际应从LLMManager加载
-        // configTable.getItems().addAll(llmManager.getAllConfigs());
+        List<LLMConfig> configs = configService.getAllConfigs();
+        configTable.getItems().clear();
+        configTable.getItems().addAll(configs);
     }
     
     private void showAddConfigDialog() {
@@ -135,17 +137,27 @@ public class LLMConfigView extends BorderPane {
         ComboBox<LLMConfig.LLMProvider> providerCombo = new ComboBox<>();
         providerCombo.getItems().addAll(LLMConfig.LLMProvider.values());
         providerCombo.setValue(LLMConfig.LLMProvider.DEEPSEEK_THINKING);
+        providerCombo.setOnAction(e -> {
+            // 根据选择自动填充默认值
+            LLMConfig.LLMProvider provider = providerCombo.getValue();
+            if (provider != null) {
+                // 可以在这里自动填充默认端点
+            }
+        });
         
         TextField modelField = new TextField();
         modelField.setText("deepseek-reasoner");
         
         TextField endpointField = new TextField();
         endpointField.setText("https://api.deepseek.com/v1/chat/completions");
+        endpointField.setPrefWidth(350);
         
         PasswordField apiKeyField = new PasswordField();
         apiKeyField.setPromptText("输入API Key");
         
         TextField timeoutField = new TextField("60");
+        
+        CheckBox defaultCheck = new CheckBox("设为默认");
         
         grid.addRow(0, new Label("配置名称:"), nameField);
         grid.addRow(1, new Label("提供商:"), providerCombo);
@@ -153,6 +165,7 @@ public class LLMConfigView extends BorderPane {
         grid.addRow(3, new Label("API端点:"), endpointField);
         grid.addRow(4, new Label("API Key:"), apiKeyField);
         grid.addRow(5, new Label("超时(秒):"), timeoutField);
+        grid.addRow(6, new Label(""), defaultCheck);
         
         dialog.getDialogPane().setContent(grid);
         
@@ -169,14 +182,17 @@ public class LLMConfigView extends BorderPane {
                 } catch (NumberFormatException e) {
                     config.setTimeout(60);
                 }
+                config.setDefault(defaultCheck.isSelected());
+                config.setEnabled(true);
                 return config;
             }
             return null;
         });
         
         dialog.showAndWait().ifPresent(config -> {
-            // 保存配置
-            // llmManager.addConfig(config);
+            String result = configService.addConfig(config);
+            showAlert(result.contains("成功") ? "成功" : "错误", result, 
+                result.contains("成功") ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
             loadConfigs();
         });
     }
@@ -187,7 +203,83 @@ public class LLMConfigView extends BorderPane {
             showAlert("提示", "请先选择要编辑的配置", Alert.AlertType.WARNING);
             return;
         }
-        // 类似添加对话框，填充现有值
+        
+        Dialog<LLMConfig> dialog = new Dialog<>();
+        dialog.setTitle("编辑LLM配置");
+        dialog.setHeaderText("修改配置: " + selected.getName());
+        
+        ButtonType saveBtn = new ButtonType("保存", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveBtn, ButtonType.CANCEL);
+        
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+        
+        TextField nameField = new TextField(selected.getName());
+        
+        ComboBox<LLMConfig.LLMProvider> providerCombo = new ComboBox<>();
+        providerCombo.getItems().addAll(LLMConfig.LLMProvider.values());
+        providerCombo.setValue(selected.getProvider());
+        
+        TextField modelField = new TextField(selected.getModelName());
+        
+        TextField endpointField = new TextField(selected.getApiEndpoint());
+        endpointField.setPrefWidth(350);
+        
+        PasswordField apiKeyField = new PasswordField();
+        apiKeyField.setPromptText("留空表示不修改");
+        
+        TextField timeoutField = new TextField(String.valueOf(selected.getTimeout()));
+        
+        CheckBox defaultCheck = new CheckBox("设为默认");
+        defaultCheck.setSelected(selected.isDefault());
+        
+        CheckBox enabledCheck = new CheckBox("启用");
+        enabledCheck.setSelected(selected.isEnabled());
+        
+        grid.addRow(0, new Label("配置名称:"), nameField);
+        grid.addRow(1, new Label("提供商:"), providerCombo);
+        grid.addRow(2, new Label("模型名称:"), modelField);
+        grid.addRow(3, new Label("API端点:"), endpointField);
+        grid.addRow(4, new Label("API Key:"), apiKeyField);
+        grid.addRow(5, new Label("超时(秒):"), timeoutField);
+        grid.addRow(6, new Label(""), defaultCheck);
+        grid.addRow(7, new Label(""), enabledCheck);
+        
+        dialog.getDialogPane().setContent(grid);
+        
+        dialog.setResultConverter(btn -> {
+            if (btn == saveBtn) {
+                selected.setName(nameField.getText());
+                selected.setProvider(providerCombo.getValue());
+                selected.setModelName(modelField.getText());
+                selected.setApiEndpoint(endpointField.getText());
+                
+                // 如果填写了新的API Key，则更新
+                String newApiKey = apiKeyField.getText();
+                if (newApiKey != null && !newApiKey.isEmpty()) {
+                    selected.setApiKey(newApiKey);
+                }
+                
+                try {
+                    selected.setTimeout(Integer.parseInt(timeoutField.getText()));
+                } catch (NumberFormatException e) {
+                    selected.setTimeout(60);
+                }
+                selected.setDefault(defaultCheck.isSelected());
+                selected.setEnabled(enabledCheck.isSelected());
+                return selected;
+            }
+            return null;
+        });
+        
+        dialog.showAndWait().ifPresent(config -> {
+            String result = configService.updateConfig(config);
+            showAlert(result.contains("成功") ? "成功" : "错误", result,
+                result.contains("成功") ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+            loadConfigs();
+        });
     }
     
     private void setAsDefault() {
@@ -196,37 +288,32 @@ public class LLMConfigView extends BorderPane {
             showAlert("提示", "请先选择配置", Alert.AlertType.WARNING);
             return;
         }
-        // llmManager.setDefaultConfig(selected.getId());
+        
+        String result = configService.setDefaultConfig(selected.getId());
+        showAlert("提示", result, 
+            result.contains("成功") ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
         loadConfigs();
-        showAlert("成功", "已设为默认配置", Alert.AlertType.INFORMATION);
     }
     
     private void deleteConfig() {
         LLMConfig selected = configTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showAlert("提示", "请先选择配置", Alert.AlertType.WARNING);
+            showAlert("提示", "请先选择要删除的配置", Alert.AlertType.WARNING);
             return;
         }
-        // 确认删除
+        
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("确认删除");
+        confirm.setHeaderText("删除配置");
         confirm.setContentText("确定要删除配置 [" + selected.getName() + "] 吗？");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                // llmManager.deleteConfig(selected.getId());
+                String result = configService.deleteConfig(selected.getId());
+                showAlert("提示", result,
+                    result.contains("成功") ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
                 loadConfigs();
             }
         });
-    }
-    
-    private void testConnection() {
-        LLMConfig selected = configTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showAlert("提示", "请先选择配置", Alert.AlertType.WARNING);
-            return;
-        }
-        // 测试API连接
-        showAlert("测试", "连接测试中...", Alert.AlertType.INFORMATION);
     }
     
     private void showAlert(String title, String content, Alert.AlertType type) {

@@ -17,6 +17,7 @@ com\interview\view\EvaluationView.class
 com\interview\util\AudioRecorder$RecordingCallback.class
 com\interview\model\Question$QuestionType.class
 com\interview\service\EvaluationService.class
+com\interview\llm\LLMManager$1.class
 com\interview\config\SSLConfig$SSLMode.class
 com\interview\model\EvaluationDimension.class
 com\interview\view\CandidateInterviewView.class
@@ -31,6 +32,7 @@ com\interview\dao\QuestionDao.class
 com\interview\service\SpeechRecognitionService.class
 com\interview\util\AudioRecorder.class
 com\interview\view\InterviewRecordManageView.class
+com\interview\service\LLMConfigService.class
 com\interview\service\QuestionAnalysisResult.class
 com\interview\view\MainView.class
 com\interview\view\ReportView.class
@@ -53,6 +55,7 @@ com\interview\service\AIAnalysisService.class
 com\interview\model\QuestionExtractRecord.class
 com\interview\model\InterviewRecord$InterviewStatus.class
 com\interview\Main.class
+com\interview\model\InterviewAnalysisResult.class
 com\interview\view\UserEditDialog.class
 com\interview\model\User.class
 com\interview\model\EvaluationDimension$Category.class
@@ -62,6 +65,7 @@ com\interview\model\Role.class
 com\interview\view\RegisterDialog$RoleItem.class
 com\interview\config\AppConfig.class
 com\interview\dao\UserDao.class
+com\interview\llm\LLMManager.class
 com\interview\view\LLMConfigView.class
 com\interview\view\RegisterDialog.class
 com\interview\view\ChangePasswordDialog.class

@@ -57,10 +57,10 @@ public class Question {
     
     // 难度等级枚举
     public enum Difficulty {
-        EASY("简单", 1),
-        MEDIUM("中等", 2),
-        HARD("困难", 3),
-        EXPERT("专家", 4);
+        EASY("初级", 1),
+        MEDIUM("中级", 2),
+        HARD("高级", 3),
+        EXPERT("资深", 4);
         
         private final String displayName;
         private final int level;

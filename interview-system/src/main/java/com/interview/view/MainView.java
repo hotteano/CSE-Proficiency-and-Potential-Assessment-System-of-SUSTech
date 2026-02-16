@@ -105,8 +105,8 @@ public class MainView extends BorderPane {
                 addTab("题目抽取", new QuestionExtractView(questionService));
                 addTab("面试控制", new InterviewControlView(controlService, questionService));
                 addTab("面试记录", new InterviewRecordManageView(recordService, true));
-                addTab("面试评分", new EvaluationView(evaluationService, recordService));
-                addTab("评测报告", new ReportView());
+                addTab("面试评分", new EvaluationView(authService));
+                addTab("评测报告", new ReportView(authService));
                 addTab("API配置", new LLMConfigView(authService));
                 addTab("用户管理", new UserManageView(userService));
             }
@@ -115,7 +115,7 @@ public class MainView extends BorderPane {
                 addTab("题目抽取", new QuestionExtractView(questionService));
                 addTab("面试控制", new InterviewControlView(controlService, questionService));
                 addTab("面试记录", new InterviewRecordManageView(recordService, true));
-                addTab("面试评分", new EvaluationView(evaluationService, recordService));
+                addTab("面试评分", new EvaluationView(authService));
             }
             case QUESTION_CREATOR -> {
                 addTab("题目浏览", new QuestionBrowseView(questionService));
@@ -123,7 +123,7 @@ public class MainView extends BorderPane {
             }
             case CANDIDATE -> {
                 addTab("我的面试记录", new InterviewRecordManageView(recordService, false));
-                addTab("我的评测报告", new ReportView());
+                addTab("我的评测报告", new ReportView(authService));
             }
         }
         

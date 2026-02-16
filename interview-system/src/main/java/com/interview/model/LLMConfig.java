@@ -1,11 +1,14 @@
 package com.interview.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
  * 大语言模型配置实体类
  */
-public class LLMConfig {
+public class LLMConfig implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
     
     private Integer id;
     private String name;              // 配置名称

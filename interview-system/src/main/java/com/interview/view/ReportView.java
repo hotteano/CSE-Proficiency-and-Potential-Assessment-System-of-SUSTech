@@ -1,6 +1,10 @@
 package com.interview.view;
 
 import com.interview.model.*;
+import com.interview.service.AuthService;
+import com.interview.service.EvaluationService;
+import com.interview.service.InterviewRecordService;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.chart.BarChart;
@@ -9,7 +13,6 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -17,46 +20,115 @@ import java.util.Map;
 
 /**
  * 评测报告界面（JavaFX）
+ * 选择面试记录并查看/生成评测报告
  */
 public class ReportView extends BorderPane {
+    
+    private final EvaluationService evaluationService;
+    private final InterviewRecordService recordService;
     
     private VBox reportContent;
     private Label gradeLabel;
     private Label scoreLabel;
     private BarChart<String, Number> categoryChart;
+    private TableView<InterviewRecord> recordTable;
+    private Label selectedRecordLabel;
+    private Button generateReportBtn;
     
-    public ReportView() {
+    public ReportView(AuthService authService) {
+        this.evaluationService = new EvaluationService(authService);
+        this.recordService = new InterviewRecordService(authService);
+        
         setPadding(new Insets(10));
         setStyle("-fx-background-color: white;");
         
         initComponents();
+        loadInterviewRecords();
     }
     
     private void initComponents() {
-        // 顶部标题
-        Label titleLabel = new Label("计算机科学能力与潜力评测报告");
-        titleLabel.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 22));
-        titleLabel.setStyle("-fx-text-fill: #1565c0;");
-        setTop(titleLabel);
+        // 左侧：面试记录选择
+        setLeft(createRecordSelectionPanel());
         
         // 中心：报告内容
         ScrollPane scrollPane = new ScrollPane(createReportPanel());
         scrollPane.setFitToWidth(true);
         setCenter(scrollPane);
-        
-        // 底部：导出按钮
-        HBox buttonBox = new HBox(10);
-        buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.setPadding(new Insets(10));
-        
-        Button exportBtn = new Button("导出报告");
-        exportBtn.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold;");
-        exportBtn.setOnAction(e -> exportReport());
-        
-        buttonBox.getChildren().add(exportBtn);
-        setBottom(buttonBox);
     }
     
+    /**
+     * 创建面试记录选择面板
+     */
+    private VBox createRecordSelectionPanel() {
+        VBox panel = new VBox(10);
+        panel.setPadding(new Insets(0, 10, 0, 0));
+        panel.setPrefWidth(300);
+        
+        Label titleLabel = new Label("选择面试记录");
+        titleLabel.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 16));
+        
+        // 刷新按钮
+        Button refreshBtn = new Button("刷新");
+        refreshBtn.setOnAction(e -> loadInterviewRecords());
+        
+        HBox headerBox = new HBox(10);
+        headerBox.setAlignment(Pos.CENTER_LEFT);
+        headerBox.getChildren().addAll(titleLabel, refreshBtn);
+        
+        // 面试记录表格
+        recordTable = new TableView<>();
+        
+        TableColumn<InterviewRecord, String> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(cell -> 
+            new SimpleStringProperty(String.valueOf(cell.getValue().getId())));
+        idCol.setPrefWidth(50);
+        
+        TableColumn<InterviewRecord, String> candidateCol = new TableColumn<>("考生");
+        candidateCol.setCellValueFactory(cell -> 
+            new SimpleStringProperty(cell.getValue().getCandidateUsername()));
+        candidateCol.setPrefWidth(100);
+        
+        TableColumn<InterviewRecord, String> statusCol = new TableColumn<>("状态");
+        statusCol.setCellValueFactory(cell -> 
+            new SimpleStringProperty(cell.getValue().getStatusDisplayName()));
+        statusCol.setPrefWidth(80);
+        
+        TableColumn<InterviewRecord, String> timeCol = new TableColumn<>("时间");
+        timeCol.setCellValueFactory(cell -> {
+            var time = cell.getValue().getInterviewTime();
+            return new SimpleStringProperty(time != null ? 
+                time.toLocalDate().toString() : "-");
+        });
+        timeCol.setPrefWidth(80);
+        
+        recordTable.getColumns().addAll(idCol, candidateCol, statusCol, timeCol);
+        recordTable.setPrefHeight(350);
+        
+        // 选择事件
+        recordTable.getSelectionModel().selectedItemProperty().addListener(
+            (obs, oldVal, newVal) -> onRecordSelected(newVal));
+        
+        // 已选记录信息
+        selectedRecordLabel = new Label("请从上方选择一条记录\n查看或生成评测报告");
+        selectedRecordLabel.setWrapText(true);
+        selectedRecordLabel.setStyle("-fx-text-fill: #666;");
+        
+        // 生成报告按钮
+        generateReportBtn = new Button("生成评测报告");
+        generateReportBtn.setStyle("-fx-background-color: #2196f3; -fx-text-fill: white; -fx-font-weight: bold;");
+        generateReportBtn.setPrefWidth(200);
+        generateReportBtn.setDisable(true);
+        generateReportBtn.setOnAction(e -> generateReport());
+        
+        panel.getChildren().addAll(headerBox, recordTable, selectedRecordLabel, generateReportBtn);
+        VBox.setVgrow(recordTable, Priority.ALWAYS);
+        
+        return panel;
+    }
+    
+    /**
+     * 创建报告面板
+     */
     private VBox createReportPanel() {
         reportContent = new VBox(20);
         reportContent.setPadding(new Insets(20));
@@ -119,8 +191,6 @@ public class ReportView extends BorderPane {
         categoryChart.setPrefWidth(500);
         categoryChart.setPrefHeight(300);
         
-        // TODO: 添加雷达图
-        
         section.getChildren().add(categoryChart);
         
         return section;
@@ -134,17 +204,7 @@ public class ReportView extends BorderPane {
         Label titleLabel = new Label("详细分析");
         titleLabel.setFont(Font.font(null, FontWeight.BOLD, 16));
         
-        // 优势维度
-        Label strengthLabel = new Label("优势维度:");
-        strengthLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
-        strengthLabel.setStyle("-fx-text-fill: #4caf50;");
-        
-        // 待提升维度
-        Label weaknessLabel = new Label("待提升维度:");
-        weaknessLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
-        weaknessLabel.setStyle("-fx-text-fill: #f44336;");
-        
-        section.getChildren().addAll(titleLabel, strengthLabel, weaknessLabel);
+        section.getChildren().add(titleLabel);
         
         return section;
     }
@@ -163,6 +223,102 @@ public class ReportView extends BorderPane {
         return section;
     }
     
+    /**
+     * 加载面试记录
+     */
+    private void loadInterviewRecords() {
+        var records = recordService.getAllRecords();
+        recordTable.getItems().clear();
+        recordTable.getItems().addAll(records);
+    }
+    
+    /**
+     * 选择面试记录回调
+     */
+    private void onRecordSelected(InterviewRecord record) {
+        if (record == null) {
+            generateReportBtn.setDisable(true);
+            return;
+        }
+        
+        // 更新已选记录信息
+        String info = String.format("已选择记录 #%d\n考生: %s\n状态: %s",
+            record.getId(),
+            record.getCandidateUsername(),
+            record.getStatusDisplayName()
+        );
+        selectedRecordLabel.setText(info);
+        generateReportBtn.setDisable(false);
+        
+        // 尝试加载已有报告
+        loadExistingReport(record.getId());
+    }
+    
+    /**
+     * 生成评测报告
+     */
+    private void generateReport() {
+        InterviewRecord selected = recordTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert("提示", "请先选择面试记录", Alert.AlertType.WARNING);
+            return;
+        }
+        
+        // 显示确认对话框
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("生成报告");
+        confirm.setHeaderText("生成评测报告");
+        confirm.setContentText("将为考生 [" + selected.getCandidateUsername() + "] 生成综合评测报告。\n" +
+            "如果已有报告将被覆盖。是否继续？");
+        
+        confirm.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                // 调用服务生成报告
+                EvaluationReport report = evaluationService.generateReport(selected.getId(), selected);
+                if (report != null) {
+                    setReport(report);
+                    showAlert("成功", "评测报告生成完成！", Alert.AlertType.INFORMATION);
+                } else {
+                    showAlert("错误", "生成报告失败，请确保已有评分数据", Alert.AlertType.ERROR);
+                }
+            }
+        });
+    }
+    
+    /**
+     * 加载已有报告
+     */
+    private void loadExistingReport(int recordId) {
+        // 尝试获取已有报告（如果有保存的话）
+        // 这里简化处理，实际应该从数据库加载
+        // 如果没有，显示空报告
+        clearReport();
+    }
+    
+    /**
+     * 清空报告内容
+     */
+    private void clearReport() {
+        gradeLabel.setText("-");
+        scoreLabel.setText("0.0");
+        categoryChart.getData().clear();
+        
+        // 清空分析内容
+        VBox analysisSection = (VBox) reportContent.getChildren().get(2);
+        analysisSection.getChildren().clear();
+        Label titleLabel = new Label("详细分析");
+        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 16));
+        analysisSection.getChildren().add(titleLabel);
+        
+        // 清空建议内容
+        VBox suggestionSection = (VBox) reportContent.getChildren().get(3);
+        suggestionSection.getChildren().clear();
+        Label suggestTitle = new Label("发展建议");
+        suggestTitle.setFont(Font.font(null, FontWeight.BOLD, 16));
+        suggestTitle.setStyle("-fx-text-fill: #e65100;");
+        suggestionSection.getChildren().add(suggestTitle);
+    }
+    
     public void setReport(EvaluationReport report) {
         if (report == null) {
             return;
@@ -177,6 +333,9 @@ public class ReportView extends BorderPane {
         
         // 更新分析内容
         updateAnalysis(report);
+        
+        // 更新建议
+        updateSuggestions(report);
     }
     
     private void updateCategoryChart(Map<EvaluationDimension.Category, Double> categoryScores) {
@@ -196,7 +355,6 @@ public class ReportView extends BorderPane {
     }
     
     private void updateAnalysis(EvaluationReport report) {
-        // 清空并重新添加分析内容
         VBox analysisSection = (VBox) reportContent.getChildren().get(2);
         analysisSection.getChildren().clear();
         
@@ -244,9 +402,6 @@ public class ReportView extends BorderPane {
             commentLabel.setWrapText(true);
             analysisSection.getChildren().add(commentLabel);
         }
-        
-        // 更新建议
-        updateSuggestions(report);
     }
     
     private void updateSuggestions(EvaluationReport report) {
@@ -282,12 +437,11 @@ public class ReportView extends BorderPane {
         }
     }
     
-    private void exportReport() {
-        // TODO: 实现报告导出功能
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("导出");
+    private void showAlert(String title, String content, Alert.AlertType type) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText("报告导出功能开发中...");
+        alert.setContentText(content);
         alert.showAndWait();
     }
 }

@@ -5,6 +5,7 @@ import com.interview.model.*;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 评测服务层
@@ -72,6 +73,32 @@ public class EvaluationService {
         } catch (SQLException e) {
             return "提交失败: " + e.getMessage();
         }
+    }
+    
+    /**
+     * 保存评分（供视图层调用）
+     * 创建并提交评委评分
+     * 
+     * @param recordId 面试记录ID
+     * @param scores 各维度分数（Double类型，会被转换为Integer）
+     * @param comments 评语
+     * @param reasoning 评分理由
+     * @return 是否保存成功
+     */
+    public boolean saveScore(int recordId, Map<EvaluationDimension, Double> scores, String comments, String reasoning) {
+        EvaluationScore score = new EvaluationScore();
+        score.setInterviewRecordId(recordId);
+        score.setComments(comments);
+        score.setReasoning(reasoning);
+        
+        // 将 Double 分数转换为 Integer
+        for (Map.Entry<EvaluationDimension, Double> entry : scores.entrySet()) {
+            score.setDimensionScore(entry.getKey(), entry.getValue().intValue());
+        }
+        
+        // 调用现有的提交方法
+        String result = submitHumanScore(score);
+        return result.contains("成功");
     }
     
     /**

@@ -122,6 +122,14 @@ public enum EvaluationDimension {
     }
     
     /**
+     * 获取权重值（0.0-1.0范围内的double值）
+     * @return 权重值，范围0.0-1.0
+     */
+    public double getWeight() {
+        return defaultWeight / 100.0;
+    }
+    
+    /**
      * 获取大维度分类
      */
     public enum Category {
