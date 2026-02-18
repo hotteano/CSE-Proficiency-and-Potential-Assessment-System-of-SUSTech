@@ -1,0 +1,147 @@
+# ==================== Java ====================
+# Compiled class files
+*.class
+
+# Package Files
+*.jar
+*.war
+*.ear
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# ==================== Node.js / Vue.js ====================
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# Vite
+.vite/
+
+# ==================== Spring Boot ====================
+# Application properties with sensitive data
+application-local.yml
+application-dev.yml
+application-prod.yml
+application-*.yml.bak
+
+# Logs
+logs/
+*.log
+
+# ==================== Database ====================
+# H2 Database
+*.db
+*.mv.db
+*.trace.db
+
+# ==================== OS Generated Files ====================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux
+*~
+.nfs*
+
+# ==================== Testing ====================
+# Test reports
+test-output/
+reports/
+coverage/
+.nyc_output/
+
+# ==================== Temporary Files ====================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache/
+
+# ==================== Project Specific ====================
+# Config files with sensitive data
+config.properties.local
+*.jks
+*.p12
+*.pem
+*.key
+
+# Generated files
+*.generated
