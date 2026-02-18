@@ -19,6 +19,7 @@ com\interview\model\Question$QuestionType.class
 com\interview\model\Question$SpecializationType.class
 com\interview\service\EvaluationService.class
 com\interview\llm\LLMManager$1.class
+com\interview\config\DatabaseConfig$DbUserRole.class
 com\interview\config\SSLConfig$SSLMode.class
 com\interview\model\EvaluationDimension.class
 com\interview\view\CandidateInterviewView.class
@@ -37,6 +38,7 @@ com\interview\service\QuestionAnalysisResult.class
 com\interview\view\MainView.class
 com\interview\view\ReportView.class
 com\interview\dao\EvaluationScoreDao.class
+com\interview\config\DatabaseConfig$1.class
 com\interview\model\EvaluationScore.class
 com\interview\util\DatabaseInitializer.class
 com\interview\model\InterviewRecord.class

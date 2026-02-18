@@ -6,14 +6,13 @@ import com.interview.model.Question.QuestionType;
 import com.interview.model.Question.SpecializationType;
 import com.interview.service.QuestionService;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 /**
  * 题目编辑对话框（JavaFX）
+ * 应用新 CSS 设计
  * 
  * 支持等级体系：
  * - 基础等级：初级、中级、高级
@@ -33,14 +32,18 @@ public class QuestionEditDialog extends Dialog<Boolean> {
     private ComboBox<String> specializationComboBox;
     private TextField categoryField;
     private Label specializationLabel;
+    private Label messageLabel;
     
     public QuestionEditDialog(QuestionService questionService, Question question) {
         this.questionService = questionService;
         this.question = question != null ? question : new Question();
         this.isEdit = question != null;
         
-        setTitle(isEdit ? "编辑题目" : "新增题目");
+        setTitle(isEdit ? "✏️ 编辑题目" : "➕ 新增题目");
         setHeaderText(isEdit ? "修改题目信息" : "创建新题目");
+        
+        // 应用对话框样式
+        getDialogPane().getStyleClass().add("dialog-pane");
         
         initComponents();
         if (isEdit) {
@@ -52,8 +55,14 @@ public class QuestionEditDialog extends Dialog<Boolean> {
         ButtonType cancelButtonType = new ButtonType("取消", ButtonBar.ButtonData.CANCEL_CLOSE);
         getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
         
-        // 处理保存
+        // 样式化按钮
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
+        saveButton.getStyleClass().addAll("button", "button-success");
+        
+        Button cancelButton = (Button) getDialogPane().lookupButton(cancelButtonType);
+        cancelButton.getStyleClass().addAll("button", "button-secondary");
+        
+        // 处理保存
         saveButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
             if (!saveQuestion()) {
                 event.consume();
@@ -69,97 +78,123 @@ public class QuestionEditDialog extends Dialog<Boolean> {
     }
     
     private void initComponents() {
-        VBox content = new VBox(10);
-        content.setPadding(new Insets(20));
+        VBox content = new VBox(15);
+        content.setPadding(new Insets(15));
+        content.setAlignment(Pos.CENTER);
         
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
+        grid.setHgap(12);
+        grid.setVgap(12);
+        grid.setAlignment(Pos.CENTER);
+        
+        int row = 0;
         
         // 标题
-        grid.add(new Label("标题:*"), 0, 0);
+        grid.add(createFormLabel("标题", true), 0, row);
         titleField = new TextField();
         titleField.setPromptText("请输入题目标题");
-        grid.add(titleField, 1, 0);
+        titleField.getStyleClass().add("text-field");
+        GridPane.setHgrow(titleField, Priority.ALWAYS);
+        grid.add(titleField, 1, row++);
         
         // 类型
-        grid.add(new Label("类型:*"), 0, 1);
+        grid.add(createFormLabel("类型", true), 0, row);
         typeComboBox = new ComboBox<>();
         for (QuestionType type : QuestionType.values()) {
             typeComboBox.getItems().add(type.getDisplayName());
         }
         typeComboBox.setValue(QuestionType.TECHNICAL.getDisplayName());
-        grid.add(typeComboBox, 1, 1);
+        typeComboBox.getStyleClass().add("combo-box");
+        grid.add(typeComboBox, 1, row++);
         
         // 等级
-        grid.add(new Label("等级:*"), 0, 2);
+        grid.add(createFormLabel("等级", true), 0, row);
         levelComboBox = new ComboBox<>();
-        // 添加基础等级
         for (QuestionLevel level : QuestionLevel.getBasicLevels()) {
             levelComboBox.getItems().add(level.getDisplayName());
         }
-        // 添加专精三等
         levelComboBox.getItems().add(QuestionLevel.SPECIALIZATION_THREE.getDisplayName());
-        
         levelComboBox.setValue(QuestionLevel.BASIC.getDisplayName());
-        
-        // 等级选择变化时更新专精类型可见性
+        levelComboBox.getStyleClass().add("combo-box");
         levelComboBox.setOnAction(e -> updateSpecializationVisibility());
-        
-        grid.add(levelComboBox, 1, 2);
+        grid.add(levelComboBox, 1, row++);
         
         // 专精类型（仅专精三等需要）
-        specializationLabel = new Label("专精类型:*");
-        grid.add(specializationLabel, 0, 3);
+        specializationLabel = createFormLabel("专精类型", true);
+        grid.add(specializationLabel, 0, row);
         specializationComboBox = new ComboBox<>();
         for (SpecializationType spec : SpecializationType.getValidTypes()) {
             specializationComboBox.getItems().add(spec.getDisplayName());
         }
         specializationComboBox.setValue(SpecializationType.ALGORITHM.getDisplayName());
-        grid.add(specializationComboBox, 1, 3);
+        specializationComboBox.getStyleClass().add("combo-box");
+        grid.add(specializationComboBox, 1, row++);
         
         // 默认隐藏专精类型
         updateSpecializationVisibility();
         
         // 分类
-        grid.add(new Label("分类:"), 0, 4);
+        grid.add(createFormLabel("分类", false), 0, row);
         categoryField = new TextField();
         categoryField.setPromptText("选填，如：Java、数据库、网络等");
-        grid.add(categoryField, 1, 4);
+        categoryField.getStyleClass().add("text-field");
+        grid.add(categoryField, 1, row++);
         
         // 题目内容
-        grid.add(new Label("内容:*"), 0, 5);
+        grid.add(createFormLabel("内容", true), 0, row);
         contentArea = new TextArea();
         contentArea.setPromptText("请输入题目内容");
         contentArea.setPrefRowCount(6);
         contentArea.setWrapText(true);
-        grid.add(contentArea, 1, 5);
+        contentArea.getStyleClass().add("text-area");
+        GridPane.setHgrow(contentArea, Priority.ALWAYS);
+        grid.add(contentArea, 1, row++);
         
         // 参考答案
-        grid.add(new Label("参考答案:"), 0, 6);
+        grid.add(createFormLabel("参考答案", false), 0, row);
         answerArea = new TextArea();
         answerArea.setPromptText("选填");
         answerArea.setPrefRowCount(4);
         answerArea.setWrapText(true);
-        grid.add(answerArea, 1, 6);
-        
-        // 等级说明
-        Label levelInfoLabel = new Label("等级说明：\n" +
-            "• 初级：基本程序编写能力，简单编程任务\n" +
-            "• 中级：独立完成中等复杂度任务，具备故障排除能力\n" +
-            "• 高级：复杂算法和系统设计，科研能力\n" +
-            "• 专精三等：特定领域的深度能力（算法/系统/商业/科研）");
-        levelInfoLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
-        levelInfoLabel.setWrapText(true);
-        grid.add(levelInfoLabel, 1, 7);
-        
-        GridPane.setHgrow(titleField, Priority.ALWAYS);
-        GridPane.setHgrow(contentArea, Priority.ALWAYS);
+        answerArea.getStyleClass().add("text-area");
         GridPane.setHgrow(answerArea, Priority.ALWAYS);
+        grid.add(answerArea, 1, row++);
+        
+        // 消息标签
+        messageLabel = new Label();
+        messageLabel.getStyleClass().add("label-danger");
+        messageLabel.setVisible(false);
+        grid.add(messageLabel, 1, row++);
+        
+        // 等级说明卡片
+        VBox levelCard = new VBox(8);
+        levelCard.getStyleClass().addAll("card-flat", "alert-info");
+        levelCard.setPadding(new Insets(12));
+        
+        Label levelTitle = new Label("📊 等级说明");
+        levelTitle.getStyleClass().add("caption-label");
+        
+        Label levelInfoLabel = new Label(
+            "• 初级：基本程序编写能力\n" +
+            "• 中级：独立完成中等复杂度任务\n" +
+            "• 高级：复杂算法和系统设计\n" +
+            "• 专精三等：特定领域深度能力（算法/系统/商业/科研）"
+        );
+        levelInfoLabel.getStyleClass().add("caption-label");
+        levelInfoLabel.setStyle("-fx-line-spacing: 3px;");
+        
+        levelCard.getChildren().addAll(levelTitle, levelInfoLabel);
+        grid.add(levelCard, 1, row);
         
         content.getChildren().add(grid);
         getDialogPane().setContent(content);
-        getDialogPane().setPrefWidth(650);
+        getDialogPane().setPrefWidth(700);
+    }
+    
+    private Label createFormLabel(String text, boolean required) {
+        Label label = new Label(text + (required ? " *" : ""));
+        label.getStyleClass().add("text-secondary");
+        return label;
     }
     
     private void updateSpecializationVisibility() {
@@ -191,17 +226,19 @@ public class QuestionEditDialog extends Dialog<Boolean> {
     }
     
     private boolean saveQuestion() {
+        clearErrors();
+        
         // 验证输入
         String title = titleField.getText().trim();
         String content = contentArea.getText().trim();
         
         if (title.isEmpty()) {
-            showError("请输入题目标题");
+            showError("请输入题目标题", titleField);
             return false;
         }
         
         if (content.isEmpty()) {
-            showError("请输入题目内容");
+            showError("请输入题目内容", contentArea);
             return false;
         }
         
@@ -220,18 +257,15 @@ public class QuestionEditDialog extends Dialog<Boolean> {
         // 设置等级
         String selectedLevel = levelComboBox.getValue();
         if (QuestionLevel.SPECIALIZATION_THREE.getDisplayName().equals(selectedLevel)) {
-            // 专精三等
             question.setLevel(QuestionLevel.SPECIALIZATION_THREE);
             
-            // 验证并设置专精类型
             int specIndex = specializationComboBox.getSelectionModel().getSelectedIndex();
             if (specIndex < 0) {
-                showError("请选择专精类型");
+                showError("请选择专精类型", specializationComboBox);
                 return false;
             }
             question.setSpecialization(SpecializationType.getValidTypes()[specIndex]);
         } else {
-            // 基础等级
             for (QuestionLevel level : QuestionLevel.getBasicLevels()) {
                 if (level.getDisplayName().equals(selectedLevel)) {
                     question.setLevel(level);
@@ -252,16 +286,23 @@ public class QuestionEditDialog extends Dialog<Boolean> {
         if (result.contains("成功")) {
             return true;
         } else {
-            showError(result);
+            showError(result, null);
             return false;
         }
     }
     
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("错误");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+    private void showError(String message, Control field) {
+        messageLabel.setText("⚠️ " + message);
+        messageLabel.setVisible(true);
+        if (field != null) {
+            field.getStyleClass().add("field-error");
+        }
+    }
+    
+    private void clearErrors() {
+        messageLabel.setVisible(false);
+        titleField.getStyleClass().remove("field-error");
+        contentArea.getStyleClass().remove("field-error");
+        specializationComboBox.getStyleClass().remove("field-error");
     }
 }

@@ -8,8 +8,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -30,8 +28,7 @@ public class InterviewRecordManageView extends BorderPane {
         this.recordService = recordService;
         this.canViewAll = canViewAll;
         
-        setPadding(new Insets(10));
-        setStyle("-fx-background-color: white;");
+        getStyleClass().add("bg-secondary");
         
         // 顶部标题
         setTop(createTitlePanel());
@@ -40,6 +37,7 @@ public class InterviewRecordManageView extends BorderPane {
         SplitPane splitPane = new SplitPane();
         splitPane.setDividerPositions(0.6);
         splitPane.getItems().addAll(createRecordListPanel(), createDetailPanel());
+        splitPane.getStyleClass().add("split-pane");
         
         setCenter(splitPane);
         
@@ -48,12 +46,12 @@ public class InterviewRecordManageView extends BorderPane {
     
     private HBox createTitlePanel() {
         HBox panel = new HBox(10);
-        panel.setPadding(new Insets(0, 0, 10, 0));
         panel.setAlignment(Pos.CENTER_LEFT);
+        panel.getStyleClass().addAll("card", "card-flat", "p-3");
         
         String title = canViewAll ? "面试记录管理" : "我的面试记录";
         Label titleLabel = new Label(title);
-        titleLabel.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 18));
+        titleLabel.getStyleClass().add("heading-label");
         
         panel.getChildren().add(titleLabel);
         
@@ -62,12 +60,13 @@ public class InterviewRecordManageView extends BorderPane {
     
     private VBox createRecordListPanel() {
         VBox panel = new VBox(10);
-        panel.setPadding(new Insets(5));
+        panel.getStyleClass().addAll("card", "card-flat", "p-3");
         
         Label titleLabel = new Label("记录列表");
-        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
+        titleLabel.getStyleClass().add("subtitle-label");
         
         recordTable = new TableView<>();
+        recordTable.getStyleClass().add("table-view");
         
         TableColumn<InterviewRecord, String> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(cell -> 
@@ -121,27 +120,32 @@ public class InterviewRecordManageView extends BorderPane {
         HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER_LEFT);
         
-        Button refreshBtn = new Button("刷新");
+        Button refreshBtn = new Button("🔄 刷新");
+        refreshBtn.getStyleClass().addAll("button", "button-secondary", "button-small");
         refreshBtn.setOnAction(e -> loadRecords());
         buttonBox.getChildren().add(refreshBtn);
         
         if (canViewAll) {
-            Button playBtn = new Button("播放语音");
+            Button playBtn = new Button("▶️ 播放语音");
+            playBtn.getStyleClass().addAll("button", "button-secondary", "button-small");
             playBtn.setOnAction(e -> playVoiceFile());
             
-            Button statusBtn = new Button("更新状态");
+            Button statusBtn = new Button("📋 更新状态");
+            statusBtn.getStyleClass().addAll("button", "button-secondary", "button-small");
             statusBtn.setOnAction(e -> updateStatus());
             
-            Button notesBtn = new Button("添加评价");
+            Button notesBtn = new Button("📝 添加评价");
+            notesBtn.getStyleClass().addAll("button", "button-success", "button-small");
             notesBtn.setOnAction(e -> addNotes());
             
-            Button deleteBtn = new Button("删除");
-            deleteBtn.setStyle("-fx-background-color: #dc3545; -fx-text-fill: white;");
+            Button deleteBtn = new Button("🗑️ 删除");
+            deleteBtn.getStyleClass().addAll("button", "button-danger", "button-small");
             deleteBtn.setOnAction(e -> deleteRecord());
             
             buttonBox.getChildren().addAll(playBtn, statusBtn, notesBtn, deleteBtn);
         } else {
-            Button playBtn = new Button("播放语音");
+            Button playBtn = new Button("▶️ 播放语音");
+            playBtn.getStyleClass().addAll("button", "button-secondary", "button-small");
             playBtn.setOnAction(e -> playVoiceFile());
             buttonBox.getChildren().add(playBtn);
         }
@@ -154,15 +158,16 @@ public class InterviewRecordManageView extends BorderPane {
     
     private VBox createDetailPanel() {
         VBox panel = new VBox(10);
-        panel.setPadding(new Insets(5));
+        panel.getStyleClass().addAll("card", "card-flat", "p-3");
         
         Label titleLabel = new Label("详细信息");
-        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
+        titleLabel.getStyleClass().add("subtitle-label");
         
         detailArea = new TextArea();
         detailArea.setEditable(false);
         detailArea.setWrapText(true);
         detailArea.setText("请选择一条记录查看详情...");
+        detailArea.getStyleClass().add("text-area");
         
         panel.getChildren().addAll(titleLabel, detailArea);
         VBox.setVgrow(detailArea, Priority.ALWAYS);
@@ -245,6 +250,7 @@ public class InterviewRecordManageView extends BorderPane {
             selected.getStatus(), InterviewStatus.values());
         dialog.setTitle("更新状态");
         dialog.setHeaderText("选择新状态");
+        dialog.getDialogPane().getStyleClass().add("dialog-pane");
         
         dialog.showAndWait().ifPresent(newStatus -> {
             String result = recordService.updateStatus(selected.getId(), newStatus);
@@ -267,6 +273,7 @@ public class InterviewRecordManageView extends BorderPane {
         dialog.setTitle("添加面试评价");
         dialog.setHeaderText("为考生 [" + selected.getCandidateUsername() + "] 添加评价");
         dialog.setContentText("评价内容:");
+        dialog.getDialogPane().getStyleClass().add("dialog-pane");
         
         dialog.showAndWait().ifPresent(notes -> {
             if (!notes.trim().isEmpty()) {
@@ -291,6 +298,7 @@ public class InterviewRecordManageView extends BorderPane {
         confirm.setTitle("确认删除");
         confirm.setHeaderText("删除面试记录");
         confirm.setContentText("确定要删除考生 [" + selected.getCandidateUsername() + "] 的面试记录吗？");
+        confirm.getDialogPane().getStyleClass().add("dialog-pane");
         
         confirm.showAndWait().ifPresent(result -> {
             if (result == ButtonType.OK) {
@@ -307,6 +315,7 @@ public class InterviewRecordManageView extends BorderPane {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
+        alert.getDialogPane().getStyleClass().add("dialog-pane");
         alert.showAndWait();
     }
 }

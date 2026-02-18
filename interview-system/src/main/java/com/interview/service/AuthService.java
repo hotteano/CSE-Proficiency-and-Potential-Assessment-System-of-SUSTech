@@ -1,5 +1,6 @@
 package com.interview.service;
 
+import com.interview.config.DatabaseConfig.DbUserRole;
 import com.interview.dao.UserDao;
 import com.interview.model.Permission;
 import com.interview.model.Role;
@@ -12,6 +13,7 @@ import java.sql.SQLException;
 /**
  * 认证服务类
  * 处理用户注册、登录、权限验证等业务逻辑
+ * 支持按角色使用不同的数据库连接（SSL/HTTPS）
  */
 public class AuthService {
     
@@ -50,6 +52,9 @@ public class AuthService {
         
         // 检查用户名是否已存在
         try {
+            // 使用管理员连接进行用户创建操作
+            DatabaseConnection.setCurrentDbRole(DbUserRole.ADMIN);
+            
             if (userDao.existsByUsername(username)) {
                 return "用户名已存在";
             }
@@ -73,6 +78,7 @@ public class AuthService {
     
     /**
      * 用户登录
+     * 登录成功后，会根据用户角色设置对应的数据库连接
      * 
      * @param username 用户名
      * @param password 明文密码
@@ -87,6 +93,9 @@ public class AuthService {
         }
         
         try {
+            // 登录时先使用管理员连接验证用户
+            DatabaseConnection.setCurrentDbRole(DbUserRole.ADMIN);
+            
             User user = userDao.findByUsername(username);
             
             if (user == null) {
@@ -108,6 +117,13 @@ public class AuthService {
             // 设置当前用户
             this.currentUser = user;
             
+            // 根据用户角色设置数据库连接角色
+            // 这将使用对应角色的数据库用户通过 SSL/HTTPS 连接
+            DbUserRole dbRole = DbUserRole.fromAppRole(user.getRole());
+            DatabaseConnection.setCurrentDbRole(dbRole);
+            
+            System.out.println("用户 " + username + " 登录成功，使用数据库角色: " + dbRole.getDisplayName());
+            
             return "登录成功";
             
         } catch (SQLException e) {
@@ -117,9 +133,15 @@ public class AuthService {
     
     /**
      * 用户登出
+     * 清除当前用户和数据库角色设置
      */
     public void logout() {
+        if (currentUser != null) {
+            System.out.println("用户 " + currentUser.getUsername() + " 登出");
+        }
         this.currentUser = null;
+        // 关闭当前连接并清除角色设置
+        DatabaseConnection.closeAllConnections();
     }
     
     /**
@@ -151,6 +173,16 @@ public class AuthService {
     }
     
     /**
+     * 获取当前用户对应的数据库角色
+     */
+    public DbUserRole getCurrentDbRole() {
+        if (currentUser == null) {
+            return DbUserRole.CANDIDATE;
+        }
+        return DbUserRole.fromAppRole(currentUser.getRole());
+    }
+    
+    /**
      * 修改密码
      * 
      * @param oldPassword 旧密码
@@ -167,6 +199,9 @@ public class AuthService {
         }
         
         try {
+            // 使用管理员连接进行密码修改
+            DatabaseConnection.setCurrentDbRole(DbUserRole.ADMIN);
+            
             // 验证旧密码
             User user = userDao.findById(currentUser.getId());
             if (!BCrypt.checkpw(oldPassword, user.getPasswordHash())) {
@@ -205,6 +240,9 @@ public class AuthService {
         }
         
         try {
+            // 使用管理员连接
+            DatabaseConnection.setCurrentDbRole(DbUserRole.ADMIN);
+            
             String newPasswordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
             if (userDao.updatePassword(userId, newPasswordHash)) {
                 return "密码重置成功";
@@ -214,6 +252,27 @@ public class AuthService {
             
         } catch (SQLException e) {
             return "密码重置失败: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * 临时切换到管理员角色执行操作（仅当前用户是管理员时）
+     * 操作完成后需要手动恢复原来的角色
+     */
+    public boolean switchToAdminRole() {
+        if (!isAdmin()) {
+            return false;
+        }
+        DatabaseConnection.setCurrentDbRole(DbUserRole.ADMIN);
+        return true;
+    }
+    
+    /**
+     * 恢复当前用户的数据库角色
+     */
+    public void restoreUserRole() {
+        if (currentUser != null) {
+            DatabaseConnection.setRoleByAppRole(currentUser.getRole());
         }
     }
 }

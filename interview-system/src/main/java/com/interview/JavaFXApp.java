@@ -2,6 +2,7 @@ package com.interview;
 
 import com.interview.config.AppConfig;
 import com.interview.config.DatabaseConfig;
+import com.interview.config.DatabaseConfig.DbUserRole;
 import com.interview.service.AuthService;
 import com.interview.util.DatabaseConnection;
 import com.interview.util.DatabaseInitializer;
@@ -127,13 +128,13 @@ public class JavaFXApp extends Application {
                 case "--db-user":
                     if (i + 1 < args.length) {
                         String user = args[++i];
-                        DatabaseConfig.setPgCredentials(user, DatabaseConfig.getPassword());
+                        DatabaseConfig.setPgCredentials(user, DatabaseConfig.getDbPassword(DbUserRole.ADMIN));
                     }
                     break;
                 case "--db-password":
                     if (i + 1 < args.length) {
                         String password = args[++i];
-                        DatabaseConfig.setPgCredentials(DatabaseConfig.getUsername(), password);
+                        DatabaseConfig.setPgCredentials(DatabaseConfig.getDbUsername(DbUserRole.ADMIN), password);
                     }
                     break;
                 case "--help":
@@ -146,25 +147,28 @@ public class JavaFXApp extends Application {
     
     /**
      * 初始化数据库
+     * 使用管理员角色创建表结构和初始数据
      */
     private boolean initializeDatabase() {
         try {
             // 显示当前配置
             AppConfig.printConfig();
             
-            // 测试数据库连接
-            if (!DatabaseConnection.testConnection()) {
+            // 先测试管理员连接
+            System.out.println("正在测试管理员数据库连接...");
+            if (!DatabaseConnection.testConnection(DbUserRole.ADMIN)) {
                 System.err.println("无法连接到 PostgreSQL 数据库，请检查配置");
                 System.err.println("连接信息: " + DatabaseConfig.getCurrentUrl());
                 System.err.println("\n请检查:");
                 System.err.println("1. PostgreSQL 服务是否已启动");
-                System.err.println("2. 用户名和密码是否正确");
+                System.err.println("2. 管理员用户名和密码是否正确");
                 System.err.println("3. 数据库 interview_system 是否存在");
+                System.err.println("4. PostgreSQL SSL 是否已配置（如启用）");
                 System.err.println("\n您可以修改 config.properties 文件来配置正确的连接信息");
                 return false;
             }
             
-            System.out.println("数据库连接成功!");
+            System.out.println("管理员数据库连接成功!");
             
             // 初始化数据库表结构
             DatabaseInitializer initializer = new DatabaseInitializer();

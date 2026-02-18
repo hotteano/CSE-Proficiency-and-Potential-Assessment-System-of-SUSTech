@@ -44,7 +44,7 @@ public class InterviewControlView extends BorderPane {
         this.questionService = questionService;
         
         setPadding(new Insets(10));
-        setStyle("-fx-background-color: white;");
+        getStyleClass().add("bg-secondary");
         
         initComponents();
     }
@@ -65,12 +65,10 @@ public class InterviewControlView extends BorderPane {
         header.setPadding(new Insets(0, 0, 10, 0));
         
         Label titleLabel = new Label("面试控制中心");
-        titleLabel.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 24));
-        titleLabel.setStyle("-fx-text-fill: #1565c0;");
+        titleLabel.getStyleClass().add("heading-label");
         
         statusLabel = new Label("等待开始面试...");
-        statusLabel.setFont(Font.font(14));
-        statusLabel.setTextFill(Color.GRAY);
+        statusLabel.getStyleClass().addAll("caption-label", "alert-info");
         
         header.getChildren().addAll(titleLabel, statusLabel);
         
@@ -93,7 +91,7 @@ public class InterviewControlView extends BorderPane {
     private VBox createRecordingPanel() {
         VBox panel = new VBox(15);
         panel.setPadding(new Insets(20));
-        panel.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10px;");
+        panel.getStyleClass().addAll("card", "card-flat", "p-3");
         panel.setAlignment(Pos.CENTER);
         
         // 录音指示器
@@ -104,34 +102,33 @@ public class InterviewControlView extends BorderPane {
         recordingIndicator.setFill(Color.GRAY);
         
         Label recordingLabel = new Label("录音状态");
-        recordingLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
+        recordingLabel.getStyleClass().add("text-secondary");
         
         indicatorBox.getChildren().addAll(recordingIndicator, recordingLabel);
         
         // 计时器
         timerLabel = new Label("00:00");
-        timerLabel.setFont(Font.font(null, FontWeight.BOLD, 36));
-        timerLabel.setStyle("-fx-text-fill: #333;");
+        timerLabel.getStyleClass().add("heading-label");
         
         // 音量指示
         amplitudeBar = new ProgressBar(0);
         amplitudeBar.setPrefWidth(300);
-        amplitudeBar.setStyle("-fx-accent: #4caf50;");
+        amplitudeBar.getStyleClass().add("progress-bar");
         
         // 按钮
         HBox buttonBox = new HBox(20);
         buttonBox.setAlignment(Pos.CENTER);
         
-        startBtn = new Button("开始面试");
+        startBtn = new Button("🎤 开始面试");
         startBtn.setPrefWidth(150);
         startBtn.setPrefHeight(50);
-        startBtn.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;");
+        startBtn.getStyleClass().addAll("button", "button-success", "button-large");
         startBtn.setOnAction(e -> startInterview());
         
-        stopBtn = new Button("结束面试");
+        stopBtn = new Button("⏹️ 结束面试");
         stopBtn.setPrefWidth(150);
         stopBtn.setPrefHeight(50);
-        stopBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;");
+        stopBtn.getStyleClass().addAll("button", "button-danger", "button-large");
         stopBtn.setDisable(true);
         stopBtn.setOnAction(e -> stopInterview());
         
@@ -146,12 +143,12 @@ public class InterviewControlView extends BorderPane {
         VBox panel = new VBox(10);
         
         Label titleLabel = new Label("处理日志");
-        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
+        titleLabel.getStyleClass().add("text-secondary");
         
         logArea = new TextArea();
         logArea.setEditable(false);
         logArea.setPrefRowCount(8);
-        logArea.setStyle("-fx-control-inner-background: #fafafa; -fx-font-family: monospace;");
+        logArea.getStyleClass().add("text-area");
         
         panel.getChildren().addAll(titleLabel, logArea);
         VBox.setVgrow(logArea, Priority.ALWAYS);
@@ -164,10 +161,11 @@ public class InterviewControlView extends BorderPane {
         panel.setPadding(new Insets(10, 0, 0, 0));
         
         Label titleLabel = new Label("面试题目");
-        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
+        titleLabel.getStyleClass().add("text-secondary");
         
         ListView<String> questionList = new ListView<>();
         questionList.setPrefHeight(100);
+        questionList.getStyleClass().add("list-view");
         
         // 加载题目
         List<Question> questions = questionService.getAllQuestions();
@@ -193,7 +191,8 @@ public class InterviewControlView extends BorderPane {
             public void onRecordingStarted() {
                 Platform.runLater(() -> {
                     statusLabel.setText("正在录音...");
-                    statusLabel.setTextFill(Color.RED);
+                    statusLabel.getStyleClass().removeAll("alert-info");
+                    statusLabel.getStyleClass().add("alert-danger");
                     recordingIndicator.setFill(Color.RED);
                     
                     // 闪烁动画
@@ -217,7 +216,8 @@ public class InterviewControlView extends BorderPane {
             public void onRecordingStopped(File audioFile) {
                 Platform.runLater(() -> {
                     statusLabel.setText("录音已停止，正在处理...");
-                    statusLabel.setTextFill(Color.BLUE);
+                    statusLabel.getStyleClass().removeAll("alert-danger");
+                    statusLabel.getStyleClass().add("alert-info");
                     recordingIndicator.setFill(Color.GRAY);
                     
                     // 停止闪烁
@@ -247,7 +247,8 @@ public class InterviewControlView extends BorderPane {
             public void onAnalysisComplete(String aiResult) {
                 Platform.runLater(() -> {
                     statusLabel.setText("AI分析完成，等待评委评分");
-                    statusLabel.setTextFill(Color.GREEN);
+                    statusLabel.getStyleClass().removeAll("alert-danger", "alert-info");
+                    statusLabel.getStyleClass().add("alert-success");
                     logArea.appendText("[" + getCurrentTime() + "] AI分析完成\n");
                     logArea.appendText("[" + getCurrentTime() + "] 结果: " + aiResult.substring(0, Math.min(100, aiResult.length())) + "...\n");
                     
@@ -269,7 +270,8 @@ public class InterviewControlView extends BorderPane {
             public void onError(String error) {
                 Platform.runLater(() -> {
                     statusLabel.setText("错误: " + error);
-                    statusLabel.setTextFill(Color.RED);
+                    statusLabel.getStyleClass().removeAll("alert-info", "alert-success");
+                    statusLabel.getStyleClass().add("alert-danger");
                     logArea.appendText("[" + getCurrentTime() + "] 错误: " + error + "\n");
                     
                     startBtn.setDisable(false);

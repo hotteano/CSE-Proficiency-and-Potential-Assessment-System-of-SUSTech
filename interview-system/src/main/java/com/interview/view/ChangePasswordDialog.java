@@ -2,11 +2,13 @@ package com.interview.view;
 
 import com.interview.service.AuthService;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.*;
 
 /**
  * 修改密码对话框（JavaFX）
+ * 应用新 CSS 设计
  */
 public class ChangePasswordDialog extends Dialog<Boolean> {
     
@@ -15,12 +17,16 @@ public class ChangePasswordDialog extends Dialog<Boolean> {
     private PasswordField oldPasswordField;
     private PasswordField newPasswordField;
     private PasswordField confirmPasswordField;
+    private Label messageLabel;
     
     public ChangePasswordDialog(AuthService authService) {
         this.authService = authService;
         
-        setTitle("修改密码");
+        setTitle("🔐 修改密码");
         setHeaderText("修改登录密码");
+        
+        // 应用对话框样式
+        getDialogPane().getStyleClass().add("dialog-pane");
         
         initComponents();
         
@@ -28,7 +34,13 @@ public class ChangePasswordDialog extends Dialog<Boolean> {
         ButtonType cancelButtonType = new ButtonType("取消", ButtonBar.ButtonData.CANCEL_CLOSE);
         getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
         
+        // 样式化按钮
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
+        saveButton.getStyleClass().addAll("button", "button-success");
+        
+        Button cancelButton = (Button) getDialogPane().lookupButton(cancelButtonType);
+        cancelButton.getStyleClass().addAll("button", "button-secondary");
+        
         saveButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
             if (!changePassword()) {
                 event.consume();
@@ -44,36 +56,71 @@ public class ChangePasswordDialog extends Dialog<Boolean> {
     }
     
     private void initComponents() {
+        VBox mainBox = new VBox(15);
+        mainBox.setPadding(new Insets(10));
+        mainBox.setAlignment(Pos.CENTER);
+        
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20));
+        grid.setHgap(12);
+        grid.setVgap(12);
+        grid.setAlignment(Pos.CENTER);
         
         // 旧密码
-        grid.add(new Label("旧密码:"), 0, 0);
-        oldPasswordField = new PasswordField();
-        oldPasswordField.setPromptText("请输入旧密码");
+        Label oldPassLabel = createFormLabel("旧密码", true);
+        oldPasswordField = createPasswordField("请输入旧密码");
+        grid.add(oldPassLabel, 0, 0);
         grid.add(oldPasswordField, 1, 0);
         
         // 新密码
-        grid.add(new Label("新密码:"), 0, 1);
-        newPasswordField = new PasswordField();
-        newPasswordField.setPromptText("至少6位");
+        Label newPassLabel = createFormLabel("新密码", true);
+        newPasswordField = createPasswordField("至少6位密码");
+        grid.add(newPassLabel, 0, 1);
         grid.add(newPasswordField, 1, 1);
         
         // 确认密码
-        grid.add(new Label("确认密码:"), 0, 2);
-        confirmPasswordField = new PasswordField();
-        confirmPasswordField.setPromptText("再次输入新密码");
+        Label confirmLabel = createFormLabel("确认密码", true);
+        confirmPasswordField = createPasswordField("再次输入新密码");
+        grid.add(confirmLabel, 0, 2);
         grid.add(confirmPasswordField, 1, 2);
         
-        // 提示
-        Label tipLabel = new Label("提示: 密码长度至少6位");
-        tipLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
-        grid.add(tipLabel, 1, 3);
+        // 消息标签
+        messageLabel = new Label();
+        messageLabel.getStyleClass().add("label-danger");
+        messageLabel.setVisible(false);
+        grid.add(messageLabel, 1, 3);
         
-        getDialogPane().setContent(grid);
-        getDialogPane().setPrefWidth(350);
+        // 提示卡片
+        VBox tipCard = new VBox(8);
+        tipCard.getStyleClass().addAll("card-flat", "alert-info");
+        tipCard.setPadding(new Insets(12));
+        
+        Label tipTitle = new Label("💡 密码要求");
+        tipTitle.getStyleClass().add("caption-label");
+        
+        Label tipLabel = new Label("• 密码长度至少6位\n• 建议使用字母、数字组合\n• 定期更换密码可提高安全性");
+        tipLabel.getStyleClass().add("caption-label");
+        tipLabel.setStyle("-fx-line-spacing: 3px;");
+        
+        tipCard.getChildren().addAll(tipTitle, tipLabel);
+        grid.add(tipCard, 1, 4);
+        
+        mainBox.getChildren().add(grid);
+        getDialogPane().setContent(mainBox);
+        getDialogPane().setPrefWidth(400);
+    }
+    
+    private Label createFormLabel(String text, boolean required) {
+        Label label = new Label(text + (required ? " *" : ""));
+        label.getStyleClass().add("text-secondary");
+        return label;
+    }
+    
+    private PasswordField createPasswordField(String prompt) {
+        PasswordField field = new PasswordField();
+        field.setPromptText(prompt);
+        field.setPrefWidth(220);
+        field.getStyleClass().add("password-field");
+        return field;
     }
     
     private boolean changePassword() {
@@ -81,18 +128,20 @@ public class ChangePasswordDialog extends Dialog<Boolean> {
         String newPassword = newPasswordField.getText();
         String confirmPassword = confirmPasswordField.getText();
         
+        clearErrors();
+        
         if (oldPassword.isEmpty()) {
-            showError("请输入旧密码");
+            showError("请输入旧密码", oldPasswordField);
             return false;
         }
         
         if (newPassword.isEmpty()) {
-            showError("请输入新密码");
+            showError("请输入新密码", newPasswordField);
             return false;
         }
         
         if (!newPassword.equals(confirmPassword)) {
-            showError("两次输入的新密码不一致");
+            showError("两次输入的新密码不一致", confirmPasswordField);
             confirmPasswordField.clear();
             return false;
         }
@@ -100,27 +149,35 @@ public class ChangePasswordDialog extends Dialog<Boolean> {
         String result = authService.changePassword(oldPassword, newPassword);
         
         if (result.contains("成功")) {
-            showInfo(result);
+            showSuccess(result);
             return true;
         } else {
-            showError(result);
+            showError(result, null);
             return false;
         }
     }
     
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("错误");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+    private void showError(String message, Control field) {
+        messageLabel.setText("⚠️ " + message);
+        messageLabel.setVisible(true);
+        if (field != null) {
+            field.getStyleClass().add("field-error");
+        }
     }
     
-    private void showInfo(String message) {
+    private void clearErrors() {
+        messageLabel.setVisible(false);
+        oldPasswordField.getStyleClass().remove("field-error");
+        newPasswordField.getStyleClass().remove("field-error");
+        confirmPasswordField.getStyleClass().remove("field-error");
+    }
+    
+    private void showSuccess(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("成功");
+        alert.setTitle("✅ 成功");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        alert.getDialogPane().getStyleClass().add("dialog-pane");
         alert.showAndWait();
     }
 }

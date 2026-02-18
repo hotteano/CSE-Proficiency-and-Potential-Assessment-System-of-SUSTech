@@ -40,7 +40,7 @@ public class ReportView extends BorderPane {
         this.recordService = new InterviewRecordService(authService);
         
         setPadding(new Insets(10));
-        setStyle("-fx-background-color: white;");
+        getStyleClass().add("bg-secondary");
         
         initComponents();
         loadInterviewRecords();
@@ -61,14 +61,16 @@ public class ReportView extends BorderPane {
      */
     private VBox createRecordSelectionPanel() {
         VBox panel = new VBox(10);
-        panel.setPadding(new Insets(0, 10, 0, 0));
+        panel.setPadding(new Insets(10));
         panel.setPrefWidth(300);
+        panel.getStyleClass().addAll("card", "p-3");
         
         Label titleLabel = new Label("选择面试记录");
-        titleLabel.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 16));
+        titleLabel.getStyleClass().add("heading-label");
         
         // 刷新按钮
-        Button refreshBtn = new Button("刷新");
+        Button refreshBtn = new Button("🔄 刷新");
+        refreshBtn.getStyleClass().addAll("button", "button-secondary", "button-small");
         refreshBtn.setOnAction(e -> loadInterviewRecords());
         
         HBox headerBox = new HBox(10);
@@ -77,6 +79,7 @@ public class ReportView extends BorderPane {
         
         // 面试记录表格
         recordTable = new TableView<>();
+        recordTable.getStyleClass().add("table-view");
         
         TableColumn<InterviewRecord, String> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(cell -> 
@@ -111,11 +114,11 @@ public class ReportView extends BorderPane {
         // 已选记录信息
         selectedRecordLabel = new Label("请从上方选择一条记录\n查看或生成评测报告");
         selectedRecordLabel.setWrapText(true);
-        selectedRecordLabel.setStyle("-fx-text-fill: #666;");
+        selectedRecordLabel.getStyleClass().add("subtitle-label");
         
         // 生成报告按钮
-        generateReportBtn = new Button("生成评测报告");
-        generateReportBtn.setStyle("-fx-background-color: #2196f3; -fx-text-fill: white; -fx-font-weight: bold;");
+        generateReportBtn = new Button("📊 生成评测报告");
+        generateReportBtn.getStyleClass().addAll("button", "button-success");
         generateReportBtn.setPrefWidth(200);
         generateReportBtn.setDisable(true);
         generateReportBtn.setOnAction(e -> generateReport());
@@ -132,6 +135,7 @@ public class ReportView extends BorderPane {
     private VBox createReportPanel() {
         reportContent = new VBox(20);
         reportContent.setPadding(new Insets(20));
+        reportContent.getStyleClass().addAll("card", "p-3");
         
         // 总体评分区域
         reportContent.getChildren().add(createOverallSection());
@@ -152,26 +156,26 @@ public class ReportView extends BorderPane {
         HBox section = new HBox(30);
         section.setAlignment(Pos.CENTER);
         section.setPadding(new Insets(20));
-        section.setStyle("-fx-background-color: #e3f2fd; -fx-background-radius: 10px;");
+        section.getStyleClass().addAll("card-flat", "p-3");
         
         // 等级显示
         VBox gradeBox = new VBox(5);
         gradeBox.setAlignment(Pos.CENTER);
         Label gradeTitle = new Label("评级");
-        gradeTitle.setFont(Font.font(14));
+        gradeTitle.getStyleClass().add("subtitle-label");
         gradeLabel = new Label("-");
         gradeLabel.setFont(Font.font(null, FontWeight.BOLD, 48));
-        gradeLabel.setStyle("-fx-text-fill: #ff6f00;");
+        gradeLabel.getStyleClass().add("badge-warning");
         gradeBox.getChildren().addAll(gradeTitle, gradeLabel);
         
         // 分数显示
         VBox scoreBox = new VBox(5);
         scoreBox.setAlignment(Pos.CENTER);
         Label scoreTitle = new Label("综合评分");
-        scoreTitle.setFont(Font.font(14));
+        scoreTitle.getStyleClass().add("subtitle-label");
         scoreLabel = new Label("0.0");
         scoreLabel.setFont(Font.font(null, FontWeight.BOLD, 48));
-        scoreLabel.setStyle("-fx-text-fill: #1565c0;");
+        scoreLabel.getStyleClass().add("badge-info");
         scoreBox.getChildren().addAll(scoreTitle, scoreLabel);
         
         section.getChildren().addAll(gradeBox, new Separator(javafx.geometry.Orientation.VERTICAL), scoreBox);
@@ -199,10 +203,10 @@ public class ReportView extends BorderPane {
     private VBox createAnalysisSection() {
         VBox section = new VBox(10);
         section.setPadding(new Insets(10));
-        section.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 5px;");
+        section.getStyleClass().addAll("card-flat", "p-3");
         
         Label titleLabel = new Label("详细分析");
-        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 16));
+        titleLabel.getStyleClass().add("heading-label");
         
         section.getChildren().add(titleLabel);
         
@@ -212,11 +216,10 @@ public class ReportView extends BorderPane {
     private VBox createSuggestionsSection() {
         VBox section = new VBox(10);
         section.setPadding(new Insets(10));
-        section.setStyle("-fx-background-color: #fff3e0; -fx-background-radius: 5px;");
+        section.getStyleClass().addAll("card-flat", "p-3");
         
         Label titleLabel = new Label("发展建议");
-        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 16));
-        titleLabel.setStyle("-fx-text-fill: #e65100;");
+        titleLabel.getStyleClass().add("heading-label");
         
         section.getChildren().add(titleLabel);
         
@@ -270,6 +273,7 @@ public class ReportView extends BorderPane {
         confirm.setHeaderText("生成评测报告");
         confirm.setContentText("将为考生 [" + selected.getCandidateUsername() + "] 生成综合评测报告。\n" +
             "如果已有报告将被覆盖。是否继续？");
+        confirm.getDialogPane().getStyleClass().add("dialog-pane");
         
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
@@ -307,15 +311,14 @@ public class ReportView extends BorderPane {
         VBox analysisSection = (VBox) reportContent.getChildren().get(2);
         analysisSection.getChildren().clear();
         Label titleLabel = new Label("详细分析");
-        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 16));
+        titleLabel.getStyleClass().add("heading-label");
         analysisSection.getChildren().add(titleLabel);
         
         // 清空建议内容
         VBox suggestionSection = (VBox) reportContent.getChildren().get(3);
         suggestionSection.getChildren().clear();
         Label suggestTitle = new Label("发展建议");
-        suggestTitle.setFont(Font.font(null, FontWeight.BOLD, 16));
-        suggestTitle.setStyle("-fx-text-fill: #e65100;");
+        suggestTitle.getStyleClass().add("heading-label");
         suggestionSection.getChildren().add(suggestTitle);
     }
     
@@ -359,20 +362,20 @@ public class ReportView extends BorderPane {
         analysisSection.getChildren().clear();
         
         Label titleLabel = new Label("详细分析");
-        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 16));
+        titleLabel.getStyleClass().add("heading-label");
         analysisSection.getChildren().add(titleLabel);
         
         // 优势维度
         if (!report.getStrengths().isEmpty()) {
             Label strengthLabel = new Label("优势维度:");
-            strengthLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
-            strengthLabel.setStyle("-fx-text-fill: #4caf50;");
+            strengthLabel.getStyleClass().addAll("subtitle-label", "badge-success");
             analysisSection.getChildren().add(strengthLabel);
             
             for (EvaluationDimension dim : report.getStrengths()) {
                 Double score = report.getCompositeDimensionScores().get(dim);
                 Label dimLabel = new Label("  • " + dim.getDisplayName() + 
                     " (" + String.format("%.1f", score) + "分)");
+                dimLabel.getStyleClass().add("badge-success");
                 analysisSection.getChildren().add(dimLabel);
             }
         }
@@ -380,14 +383,14 @@ public class ReportView extends BorderPane {
         // 待提升维度
         if (!report.getWeaknesses().isEmpty()) {
             Label weaknessLabel = new Label("待提升维度:");
-            weaknessLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
-            weaknessLabel.setStyle("-fx-text-fill: #f44336;");
+            weaknessLabel.getStyleClass().addAll("subtitle-label", "badge-warning");
             analysisSection.getChildren().add(weaknessLabel);
             
             for (EvaluationDimension dim : report.getWeaknesses()) {
                 Double score = report.getCompositeDimensionScores().get(dim);
                 Label dimLabel = new Label("  • " + dim.getDisplayName() + 
                     " (" + String.format("%.1f", score) + "分)");
+                dimLabel.getStyleClass().add("badge-warning");
                 analysisSection.getChildren().add(dimLabel);
             }
         }
@@ -395,7 +398,7 @@ public class ReportView extends BorderPane {
         // 综合评价
         if (report.getOverallComment() != null) {
             Label commentTitle = new Label("综合评价:");
-            commentTitle.setFont(Font.font(null, FontWeight.BOLD, 14));
+            commentTitle.getStyleClass().add("subtitle-label");
             analysisSection.getChildren().add(commentTitle);
             
             Label commentLabel = new Label(report.getOverallComment());
@@ -409,8 +412,7 @@ public class ReportView extends BorderPane {
         suggestionSection.getChildren().clear();
         
         Label titleLabel = new Label("发展建议");
-        titleLabel.setFont(Font.font(null, FontWeight.BOLD, 16));
-        titleLabel.setStyle("-fx-text-fill: #e65100;");
+        titleLabel.getStyleClass().add("heading-label");
         suggestionSection.getChildren().add(titleLabel);
         
         for (String suggestion : report.getDevelopmentSuggestions()) {
@@ -422,8 +424,7 @@ public class ReportView extends BorderPane {
         // 适合岗位
         if (!report.getSuitablePositions().isEmpty()) {
             Label positionTitle = new Label("适合的岗位方向:");
-            positionTitle.setFont(Font.font(null, FontWeight.BOLD, 14));
-            positionTitle.setStyle("-fx-text-fill: #1565c0;");
+            positionTitle.getStyleClass().add("subtitle-label");
             suggestionSection.getChildren().add(positionTitle);
             
             StringBuilder positions = new StringBuilder();
@@ -433,6 +434,7 @@ public class ReportView extends BorderPane {
             }
             Label positionLabel = new Label(positions.toString());
             positionLabel.setWrapText(true);
+            positionLabel.getStyleClass().add("badge-info");
             suggestionSection.getChildren().add(positionLabel);
         }
     }
@@ -442,6 +444,7 @@ public class ReportView extends BorderPane {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
+        alert.getDialogPane().getStyleClass().add("dialog-pane");
         alert.showAndWait();
     }
 }

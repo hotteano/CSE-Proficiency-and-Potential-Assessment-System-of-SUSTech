@@ -161,12 +161,7 @@ java -jar target/interview-system-1.0-SNAPSHOT.jar
 java -jar target/interview-system-1.0-SNAPSHOT.jar --db-password your_password
 
 # 完整参数运行
-java -jar target/interview-system-1.0-SNAPSHOT.jar \
-  --db-host localhost \
-  --db-port 5432 \
-  --db-name interview_system \
-  --db-user postgres \
-  --db-password your_password
+java -jar target/interview-system-1.0-SNAPSHOT.jar --db-host localhost --db-port 5432 --db-name interview_system --db-user postgres --db-password 1234
 ```
 
 #### 方式二：使用 Maven JavaFX 插件（开发调试）

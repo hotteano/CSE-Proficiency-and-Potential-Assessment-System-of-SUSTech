@@ -7,13 +7,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 import java.util.List;
 
 /**
  * 题目管理视图（JavaFX）
+ * 应用新 CSS 设计
  */
 public class QuestionManageView extends BorderPane {
     
@@ -24,8 +23,8 @@ public class QuestionManageView extends BorderPane {
     public QuestionManageView(QuestionService questionService) {
         this.questionService = questionService;
         
-        setPadding(new Insets(10));
-        setStyle("-fx-background-color: white;");
+        setPadding(new Insets(20));
+        getStyleClass().add("bg-secondary");
         
         // 顶部按钮栏
         setTop(createButtonPanel());
@@ -37,46 +36,67 @@ public class QuestionManageView extends BorderPane {
         loadQuestions();
     }
     
-    private HBox createButtonPanel() {
-        HBox panel = new HBox(10);
-        panel.setPadding(new Insets(0, 0, 10, 0));
-        panel.setAlignment(Pos.CENTER_LEFT);
+    private VBox createButtonPanel() {
+        VBox panel = new VBox(15);
+        panel.setPadding(new Insets(0, 0, 15, 0));
         
-        Label titleLabel = new Label("题目管理");
-        titleLabel.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 18));
+        // 标题栏
+        HBox titleBox = new HBox(10);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
         
-        Button addBtn = new Button("新增题目");
-        addBtn.setStyle("-fx-background-color: #28a745; -fx-text-fill: white;");
-        addBtn.setOnAction(e -> showAddDialog());
-        
-        Button editBtn = new Button("编辑题目");
-        editBtn.setStyle("-fx-background-color: #4682b4; -fx-text-fill: white;");
-        editBtn.setOnAction(e -> showEditDialog());
-        
-        Button deleteBtn = new Button("删除题目");
-        deleteBtn.setStyle("-fx-background-color: #dc3545; -fx-text-fill: white;");
-        deleteBtn.setOnAction(e -> deleteQuestion());
-        
-        Button refreshBtn = new Button("刷新");
-        refreshBtn.setOnAction(e -> loadQuestions());
+        Label titleLabel = new Label("✏️ 题目管理");
+        titleLabel.getStyleClass().add("heading-label");
         
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        panel.getChildren().addAll(titleLabel, spacer, addBtn, editBtn, deleteBtn, refreshBtn);
+        titleBox.getChildren().addAll(titleLabel, spacer);
+        
+        // 按钮栏卡片
+        HBox buttonCard = new HBox(12);
+        buttonCard.getStyleClass().addAll("card-flat", "p-3");
+        buttonCard.setAlignment(Pos.CENTER_LEFT);
+        
+        Button addBtn = new Button("➕ 新增题目");
+        addBtn.getStyleClass().addAll("button", "button-success", "button-small");
+        addBtn.setOnAction(e -> showAddDialog());
+        
+        Button editBtn = new Button("✏️ 编辑题目");
+        editBtn.getStyleClass().addAll("button", "button-small");
+        editBtn.setOnAction(e -> showEditDialog());
+        
+        Button deleteBtn = new Button("🗑️ 删除题目");
+        deleteBtn.getStyleClass().addAll("button", "button-danger", "button-small");
+        deleteBtn.setOnAction(e -> deleteQuestion());
+        
+        Region btnSpacer = new Region();
+        HBox.setHgrow(btnSpacer, Priority.ALWAYS);
+        
+        Button refreshBtn = new Button("🔄 刷新");
+        refreshBtn.getStyleClass().addAll("button", "button-secondary", "button-small");
+        refreshBtn.setOnAction(e -> loadQuestions());
+        
+        buttonCard.getChildren().addAll(addBtn, editBtn, deleteBtn, btnSpacer, refreshBtn);
+        
+        panel.getChildren().addAll(titleBox, buttonCard);
         
         return panel;
     }
     
     private VBox createTablePanel() {
         VBox panel = new VBox(10);
+        panel.getStyleClass().addAll("card", "p-3");
+        panel.setPadding(new Insets(15));
         
         questionTable = new TableView<>();
+        questionTable.getStyleClass().add("table-view");
+        questionTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         
         TableColumn<Question, String> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(cell -> 
             new SimpleStringProperty(String.valueOf(cell.getValue().getId())));
         idCol.setPrefWidth(50);
+        idCol.setStyle("-fx-alignment: CENTER;");
         
         TableColumn<Question, String> titleCol = new TableColumn<>("标题");
         titleCol.setCellValueFactory(cell -> 
@@ -91,7 +111,7 @@ public class QuestionManageView extends BorderPane {
         TableColumn<Question, String> diffCol = new TableColumn<>("难度");
         diffCol.setCellValueFactory(cell -> 
             new SimpleStringProperty(cell.getValue().getLevelDisplayName()));
-        diffCol.setPrefWidth(80);
+        diffCol.setPrefWidth(90);
         
         TableColumn<Question, String> catCol = new TableColumn<>("分类");
         catCol.setCellValueFactory(cell -> {
@@ -123,6 +143,7 @@ public class QuestionManageView extends BorderPane {
     
     private void showAddDialog() {
         QuestionEditDialog dialog = new QuestionEditDialog(questionService, null);
+        dialog.getDialogPane().getStyleClass().add("dialog-pane");
         dialog.showAndWait().ifPresent(result -> {
             if (result) {
                 loadQuestions();
@@ -133,11 +154,12 @@ public class QuestionManageView extends BorderPane {
     private void showEditDialog() {
         Question selected = questionTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showAlert("提示", "请先选择要编辑的题目", Alert.AlertType.WARNING);
+            showAlert("⚠️ 提示", "请先选择要编辑的题目", Alert.AlertType.WARNING);
             return;
         }
         
         QuestionEditDialog dialog = new QuestionEditDialog(questionService, selected);
+        dialog.getDialogPane().getStyleClass().add("dialog-pane");
         dialog.showAndWait().ifPresent(result -> {
             if (result) {
                 loadQuestions();
@@ -148,20 +170,24 @@ public class QuestionManageView extends BorderPane {
     private void deleteQuestion() {
         Question selected = questionTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showAlert("提示", "请先选择要删除的题目", Alert.AlertType.WARNING);
+            showAlert("⚠️ 提示", "请先选择要删除的题目", Alert.AlertType.WARNING);
             return;
         }
         
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("确认删除");
+        confirm.setTitle("⚠️ 确认删除");
         confirm.setHeaderText("删除题目");
         confirm.setContentText("确定要删除题目 [" + selected.getTitle() + "] 吗？\n此操作不可恢复！");
+        confirm.getDialogPane().getStyleClass().add("dialog-pane");
         
         confirm.showAndWait().ifPresent(result -> {
             if (result == ButtonType.OK) {
                 String msg = questionService.deleteQuestion(selected.getId());
-                showAlert("提示", msg, 
-                    msg.contains("成功") ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+                showAlert(
+                    msg.contains("成功") ? "✅ 成功" : "❌ 错误", 
+                    msg, 
+                    msg.contains("成功") ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR
+                );
                 loadQuestions();
             }
         });
@@ -172,6 +198,7 @@ public class QuestionManageView extends BorderPane {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
+        alert.getDialogPane().getStyleClass().add("dialog-pane");
         alert.showAndWait();
     }
 }

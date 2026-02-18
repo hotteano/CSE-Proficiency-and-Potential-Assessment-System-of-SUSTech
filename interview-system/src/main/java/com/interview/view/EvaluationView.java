@@ -51,7 +51,7 @@ public class EvaluationView extends BorderPane {
         this.llmManager = new LLMManager(new LLMConfigService());
         
         setPadding(new Insets(10));
-        setStyle("-fx-background-color: #f5f5f5;");
+        getStyleClass().add("bg-secondary");
         
         initComponents();
         loadInterviewRecords();
@@ -75,14 +75,15 @@ public class EvaluationView extends BorderPane {
         VBox panel = new VBox(10);
         panel.setPadding(new Insets(10));
         panel.setPrefWidth(320);
-        panel.setStyle("-fx-background-color: white; -fx-border-radius: 5px;");
+        panel.getStyleClass().addAll("card", "p-3");
         
         // 标题
         Label titleLabel = new Label("面试记录选择");
-        titleLabel.setFont(Font.font("Microsoft YaHei", FontWeight.BOLD, 16));
+        titleLabel.getStyleClass().add("heading-label");
         
         // 刷新按钮
-        Button refreshBtn = new Button("刷新列表");
+        Button refreshBtn = new Button("🔄 刷新列表");
+        refreshBtn.getStyleClass().addAll("button", "button-secondary", "button-small");
         refreshBtn.setOnAction(e -> loadInterviewRecords());
         
         HBox headerBox = new HBox(10);
@@ -91,6 +92,7 @@ public class EvaluationView extends BorderPane {
         
         // 面试记录表格
         recordTable = new TableView<>();
+        recordTable.getStyleClass().add("table-view");
         
         TableColumn<InterviewRecord, String> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(cell -> 
@@ -125,7 +127,7 @@ public class EvaluationView extends BorderPane {
         // 已选记录信息
         selectedRecordLabel = new Label("请从上方选择一条面试记录\n开始评测");
         selectedRecordLabel.setWrapText(true);
-        selectedRecordLabel.setStyle("-fx-text-fill: #666;");
+        selectedRecordLabel.getStyleClass().add("subtitle-label");
         
         // AI分析区域
         TitledPane aiPane = createAIAnalysisPanel();
@@ -145,7 +147,7 @@ public class EvaluationView extends BorderPane {
         
         // AI分析按钮
         aiAnalyzeBtn = new Button("🤖 AI分析面试（使用预设文本测试）");
-        aiAnalyzeBtn.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold;");
+        aiAnalyzeBtn.getStyleClass().addAll("button", "button-success");
         aiAnalyzeBtn.setPrefWidth(300);
         aiAnalyzeBtn.setDisable(true);
         aiAnalyzeBtn.setOnAction(e -> performAIAnalysis());
@@ -159,7 +161,7 @@ public class EvaluationView extends BorderPane {
         
         // 应用AI结果按钮
         useAiResultBtn = new Button("📋 应用AI分析结果到评分");
-        useAiResultBtn.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white;");
+        useAiResultBtn.getStyleClass().addAll("button", "button-secondary");
         useAiResultBtn.setPrefWidth(300);
         useAiResultBtn.setDisable(true);
         useAiResultBtn.setOnAction(e -> applyAIResults());
@@ -177,12 +179,12 @@ public class EvaluationView extends BorderPane {
     private VBox createScoringPanel() {
         VBox panel = new VBox(15);
         panel.setPadding(new Insets(20));
-        panel.setStyle("-fx-background-color: white; -fx-border-radius: 5px;");
+        panel.getStyleClass().addAll("card", "p-3");
         
         // 总体评分
         overallScoreLabel = new Label("综合评分: 0.0");
         overallScoreLabel.setFont(Font.font(null, FontWeight.BOLD, 24));
-        overallScoreLabel.setStyle("-fx-text-fill: #2196f3;");
+        overallScoreLabel.getStyleClass().add("badge-info");
         
         HBox headerBox = new HBox(20);
         headerBox.setAlignment(Pos.CENTER_LEFT);
@@ -210,8 +212,8 @@ public class EvaluationView extends BorderPane {
         TitledPane reasoningPane = new TitledPane("评分理由", reasoningArea);
         
         // 提交按钮
-        submitBtn = new Button("提交评分");
-        submitBtn.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;");
+        submitBtn = new Button("✅ 提交评分");
+        submitBtn.getStyleClass().addAll("button", "button-success");
         submitBtn.setPrefWidth(200);
         submitBtn.setPrefHeight(50);
         submitBtn.setDisable(true);
@@ -261,7 +263,8 @@ public class EvaluationView extends BorderPane {
         // 权重显示
         Label weightLabel = new Label(String.format("(权重%.0f%%)", dimension.getWeight() * 100));
         weightLabel.setPrefWidth(70);
-        weightLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 10px;");
+        weightLabel.getStyleClass().add("subtitle-label");
+        weightLabel.setStyle("-fx-font-size: 10px;");
         
         // 滑块
         Slider slider = new Slider(0, 100, 0);
@@ -274,6 +277,7 @@ public class EvaluationView extends BorderPane {
             dimensionScoreLabels.get(dimension).setText(String.format("%.0f", newVal.doubleValue()));
             updateOverallScore();
         });
+        slider.getStyleClass().add("progress-bar");
         dimensionSliders.put(dimension, slider);
         
         // 分数显示
@@ -281,6 +285,7 @@ public class EvaluationView extends BorderPane {
         scoreLabel.setPrefWidth(40);
         scoreLabel.setAlignment(Pos.CENTER);
         scoreLabel.setFont(Font.font(null, FontWeight.BOLD, 14));
+        scoreLabel.getStyleClass().add("badge");
         dimensionScoreLabels.put(dimension, scoreLabel);
         
         row.getChildren().addAll(nameLabel, weightLabel, slider, scoreLabel);
@@ -472,6 +477,7 @@ public class EvaluationView extends BorderPane {
         confirm.setContentText(String.format("确定为考生 [%s] 提交评分吗？\n综合评分: %s",
             selectedRecord.getCandidateUsername(),
             overallScoreLabel.getText()));
+        confirm.getDialogPane().getStyleClass().add("dialog-pane");
         
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
@@ -497,6 +503,7 @@ public class EvaluationView extends BorderPane {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
+        alert.getDialogPane().getStyleClass().add("dialog-pane");
         alert.showAndWait();
     }
 }
