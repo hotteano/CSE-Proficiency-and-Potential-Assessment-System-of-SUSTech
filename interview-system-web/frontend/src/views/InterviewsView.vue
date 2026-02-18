@@ -3,7 +3,7 @@
     <h2>面试记录</h2>
     <el-card>
       <div class="toolbar">
-        <el-button type="primary" @click="showAddDialog">安排面试</el-button>
+        <el-button v-if="authStore.isExaminer" type="primary" @click="showAddDialog">安排面试</el-button>
       </div>
       <el-table :data="records" v-loading="loading" border>
         <el-table-column prop="id" label="ID" width="60" />
@@ -34,7 +34,7 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button 
-              v-if="row.status === 'SCHEDULED'" 
+              v-if="authStore.isExaminer && row.status === 'SCHEDULED'" 
               size="small" 
               type="primary"
               @click="startInterview(row)"
@@ -42,7 +42,7 @@
               开始
             </el-button>
             <el-button 
-              v-if="row.status === 'IN_PROGRESS'" 
+              v-if="authStore.isExaminer && row.status === 'IN_PROGRESS'" 
               size="small" 
               type="success"
               @click="completeInterview(row)"
@@ -50,7 +50,7 @@
               完成
             </el-button>
             <el-button size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button size="small" type="danger" @click="remove(row)">删除</el-button>
+            <el-button v-if="authStore.isExaminer" size="small" type="danger" @click="remove(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -143,7 +143,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { interviewApi } from '@/api'
+import { useAuthStore } from '@/stores/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
+
+const authStore = useAuthStore()
 
 const records = ref([])
 const loading = ref(false)

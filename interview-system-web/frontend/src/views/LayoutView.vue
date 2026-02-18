@@ -17,12 +17,12 @@
           <span>首页</span>
         </el-menu-item>
         
-        <el-menu-item index="/questions">
+        <el-menu-item index="/questions" v-if="authStore.isQuestionCreator">
           <el-icon><Document /></el-icon>
           <span>题目管理</span>
         </el-menu-item>
         
-        <el-menu-item index="/interviews">
+        <el-menu-item index="/interviews" v-if="authStore.isExaminer">
           <el-icon><Microphone /></el-icon>
           <span>面试记录</span>
         </el-menu-item>

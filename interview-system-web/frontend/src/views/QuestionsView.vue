@@ -3,7 +3,7 @@
     <h2>题目管理</h2>
     <el-card>
       <div class="toolbar">
-        <el-button type="primary" @click="showAddDialog">新增题目</el-button>
+        <el-button v-if="authStore.isQuestionCreator" type="primary" @click="showAddDialog">新增题目</el-button>
       </div>
       <el-table :data="questions" v-loading="loading" border>
         <el-table-column prop="id" label="ID" width="60" />
@@ -28,7 +28,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column v-if="authStore.isQuestionCreator" label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="edit(row)">编辑</el-button>
             <el-button size="small" type="danger" @click="remove(row)">删除</el-button>
@@ -108,7 +108,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { questionApi } from '@/api'
+import { useAuthStore } from '@/stores/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
+
+const authStore = useAuthStore()
 
 const questions = ref([])
 const loading = ref(false)

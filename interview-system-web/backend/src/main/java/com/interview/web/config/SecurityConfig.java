@@ -38,6 +38,15 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                // 题目管理：只有 ADMIN 和 QUESTION_CREATOR 可以增删改
+                .requestMatchers(HttpMethod.POST, "/api/questions/**").hasAnyRole("ADMIN", "QUESTION_CREATOR")
+                .requestMatchers(HttpMethod.PUT, "/api/questions/**").hasAnyRole("ADMIN", "QUESTION_CREATOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/questions/**").hasAnyRole("ADMIN", "QUESTION_CREATOR")
+                .requestMatchers(HttpMethod.GET, "/api/questions/**").authenticated()
+                // 面试管理：只有 ADMIN 和 EXAMINER 可以操作
+                .requestMatchers("/api/interviews/**").hasAnyRole("ADMIN", "EXAMINER")
+                // 用户管理：只有 ADMIN
+                .requestMatchers("/api/users/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
